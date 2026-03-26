@@ -304,15 +304,35 @@ Handoff includes: story specs, implementation artifacts, cycle state, constraint
 
 ---
 
+## Task Tracking Modes
+
+Hive works in two modes based on `hive.config.yaml` → `task_tracking.adapter`:
+
+**Local mode** (`adapter: null`, default):
+- All tracking via status markers (`state/episodes/`) and cycle state (`state/cycle-state/`)
+- Blockers surfaced via cycle state "blocked" status
+- No external tool required — works out of the box
+
+**External tracker mode** (`adapter: linear`):
+- Local tracking PLUS Linear board integration
+- Tickets created, claimed (assignment-locked), transitioned through the ceremony
+- Branch naming enables GitHub auto-link, merge auto-closes tickets
+- See `references/linear-integration.md` for per-phase operations
+
+Every ceremony phase works in both modes. External tracker operations are additive — they enhance but never replace local tracking.
+
+---
+
 ## Configuration
 
 All settings in `skills/hive/hive.config.yaml`:
 - Quality gate thresholds
 - Trust scoring parameters
 - Token budgets and context window limits
-- Task tracking adapter (Linear, GitHub, Jira)
+- Task tracking adapter (Linear, GitHub, Jira — or null for local-only)
 - Default methodology
 - Retry attempts
+- Model tier routing
 
 ---
 
