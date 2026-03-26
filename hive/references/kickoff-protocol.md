@@ -1,7 +1,6 @@
+# Hive Kickoff Protocol
 
-# Hive Kickoff
-
-Initialize Hive for a project. Determines whether this is a brownfield (existing codebase) or greenfield (new project) scenario and runs the appropriate onboarding flow.
+Initialize Hive for a project. Detects brownfield vs greenfield automatically.
 
 **Input:** `$ARGUMENTS` optionally describes the project or intent.
 
@@ -12,95 +11,222 @@ Check the current working directory:
 - **Empty or minimal** (just a README, no source) → **Greenfield**
 - **Ambiguous** → Ask the user
 
+---
+
 ## Step 2A: Brownfield — Discovery & Onboarding
 
-For an existing codebase that Hive hasn't worked with before.
+**Goal:** Build a comprehensive knowledge base so Hive agents understand the project before any planning or execution begins.
 
-**Goal:** Build a knowledge base so Hive agents understand the project before any planning or execution begins.
+### Phase 1: Read Existing Knowledge FIRST
 
-**Process:**
+Before scanning any code, read what the project already knows about itself:
 
-1. **Codebase Discovery** (researcher agent mindset)
-   - Scan project structure: key directories, modules, entry points
-   - Detect tech stack: languages, frameworks, package managers, build tools
-   - Detect test infrastructure: frameworks, configs, test directories, existing coverage
-   - Map navigation/routing (if applicable: mobile nav graphs, web routes, API endpoints)
-   - Read existing documentation: README, CLAUDE.md, architecture docs, API docs
-   - Check for existing CI/CD, linting, formatting configs
-   - Identify design patterns and conventions in the codebase
+1. **CLAUDE.md** — THE primary source. Read it completely. It contains build commands, conventions, architecture decisions, known issues, and rules that the developers have already documented. Every finding here takes precedence over what you discover by scanning code.
 
-2. **Synthesize Project Profile**
-   Write a structured project profile to `state/project-profile.yaml`:
-   ```yaml
-   project_name: Shindig
-   type: brownfield
-   discovered: "2026-03-26T10:00:00Z"
+2. **.claude/** directory — check for:
+   - `settings.json` / `settings.local.json` — project-level config, enabled MCP servers
+   - `commands/` — existing slash commands
+   - `agents/` — existing agent definitions
+   - `skills/` — existing skills
+   - `memory.db` — prior Claude Code context
 
-   tech_stack:
-     languages: [Kotlin, Swift, TypeScript]
-     frameworks: [KMP, Compose Multiplatform, Express.js]
-     build: [Gradle, CocoaPods, npm]
-     testing: [JUnit, XCTest, Maestro]
-     ci_cd: [GitHub Actions]
+3. **Other documentation:**
+   - `README.md` — project overview
+   - `docs/` — architecture docs, ADRs, briefs, stories, sprint status
+   - `CONTRIBUTING.md`, `ARCHITECTURE.md`, `CHANGELOG.md`
+   - Any `.md` files in project root
 
-   structure:
-     key_directories:
-       - composeApp/ — shared Compose Multiplatform UI
-       - iosApp/ — iOS native shell
-       - server/ — Node.js backend
-     entry_points:
-       - composeApp/src/commonMain/App.kt
-       - iosApp/iosApp/ContentView.swift
-       - server/index.ts
+**Key principle:** CLAUDE.md is authoritative. If CLAUDE.md says "use X convention" and the code shows a mix of X and Y, the answer is X — the code has drift, not the doc.
 
-   documentation:
-     - README.md — project overview
-     - CLAUDE.md — Claude Code instructions
-     - docs/ — additional docs (if present)
+### Phase 2: Codebase Discovery
 
-   conventions:
-     naming: camelCase (Kotlin), snake_case (API)
-     architecture: MVVM with shared ViewModel layer
-     state_management: Kotlin Flow → Compose State
+Now scan the code to fill gaps not covered by documentation:
 
-   test_infrastructure:
-     unit: JUnit (composeApp/src/commonTest/)
-     e2e: Maestro (_testing/)
-     coverage: unknown
+1. **Project structure** — key directories, modules, entry points
+   - Don't just list top-level dirs — understand what each contains
+   - For monorepos: identify each package/module and its purpose
 
-   existing_knowledge:
-     - "list any CLAUDE.md or .claude/ content found"
-   ```
+2. **Tech stack detection** — languages, frameworks, build tools
+   - Read build configs: `build.gradle.kts`, `package.json`, `Podfile`, `Cargo.toml`, etc.
+   - Check version pins and dependency lists
 
-3. **Create Test Baseline** (if test swarm will be used)
-   Write initial baseline knowledge to `state/test-baseline/{project}/baseline-knowledge.md`
+3. **Test infrastructure** — THIS IS CRITICAL, get it right:
+   - **Don't assume standard test locations.** Different frameworks put tests in different places:
+     - KMP/Kotlin: `src/commonTest/`, `src/androidTest/`, `src/iosTest/`, `src/jvmTest/`
+     - JavaScript: `__tests__/`, `*.test.ts`, `*.spec.ts` alongside source
+     - Python: `tests/`, `test_*.py` alongside source
+     - Swift: `*Tests/`, XCTest targets in Xcode project
+     - E2E: `.maestro/`, `_testing/`, `cypress/`, `playwright/`
+   - **Count actual test files** by searching for test patterns in the framework's convention
+   - Check for coverage configs: `jacoco`, `kover`, `istanbul`, `coverage/`
+   - Check for mocking/faking: `mockk`, `mockito`, `jest.mock`, fakes directories
+   - Check test runner configs: `jest.config`, `pytest.ini`, `build.gradle` test tasks
 
-4. **Initialize Hive State**
-   - Create `state/cycle-state/` directory
-   - Create initial `hive.config.yaml` in project root (or note the global one)
-   - Report findings to user with a summary of what was discovered
+4. **Architecture patterns** — scan actual code, not just file structure:
+   - DI framework (Koin, Dagger, manual)
+   - State management (Flow, StateFlow, Redux, MobX)
+   - Navigation (Compose Navigation, React Router, Express routes)
+   - Data layer (repositories, services, API clients)
+   - Read 2-3 representative files to confirm patterns
 
-5. **Present Onboarding Report**
-   ```
-   ## Project Onboarding: {project_name}
+5. **CI/CD** — `.github/workflows/`, `Jenkinsfile`, `.gitlab-ci.yml`
 
-   **Type:** Brownfield
-   **Tech Stack:** {summary}
-   **Key Modules:** {list}
-   **Test Infrastructure:** {summary}
-   **Documentation Found:** {list}
+6. **Existing project management:**
+   - Sprint/story files in `docs/`
+   - Linear/Jira/YouTrack integration in `.claude/settings`
+   - Branch naming conventions (check recent git branches)
 
-   ### What Hive Now Knows
-   - Project profile saved to state/project-profile.yaml
-   - {N} source directories mapped
-   - {N} conventions identified
-   - Test baseline: {created | not applicable}
+### Phase 3: Synthesize Project Profile
 
-   ### Recommended Next Steps
-   - Review the project profile for accuracy
-   - Run /plugin-hive:plan to plan your first feature or improvement
-   - Run /plugin-hive:standup to begin daily operations
-   ```
+Write a structured project profile to `state/project-profile.yaml`. This is what all Hive agents read before starting work.
+
+```yaml
+project_name: "{name}"
+type: brownfield
+discovered: "{ISO 8601}"
+source: "CLAUDE.md + codebase scan"
+
+# From CLAUDE.md (verbatim or summarized)
+claude_md_summary: |
+  Key rules and conventions from CLAUDE.md that agents must follow.
+  Build commands, test commands, lint commands.
+  Any explicit DO/DON'T rules.
+
+tech_stack:
+  languages: []
+  frameworks: []
+  build_tools: []
+  package_managers: []
+  versions:
+    # key version pins from build configs
+
+structure:
+  modules:
+    - name: composeApp
+      purpose: Shared KMP UI and business logic
+      source: composeApp/src/commonMain/
+      tests: composeApp/src/commonTest/
+    - name: iosApp
+      purpose: iOS native shell
+      source: iosApp/iosApp/
+    - name: server
+      purpose: Backend API
+      source: server/src/
+      tests: server/__tests__/
+  entry_points: []
+
+architecture:
+  pattern: MVVM | MVC | Clean | etc.
+  di_framework: Koin | Dagger | manual
+  state_management: description
+  navigation: description
+  data_layer: description
+
+conventions:
+  naming: description from CLAUDE.md or code analysis
+  file_organization: description
+  branching: description from git history
+  commit_messages: description from git log
+
+test_infrastructure:
+  unit:
+    framework: JUnit | pytest | Jest | etc.
+    location: path/to/tests/
+    count: N files, M test functions
+    coverage_tool: kover | jacoco | istanbul | none
+  integration:
+    framework: description
+    location: path
+  e2e:
+    framework: Maestro | Playwright | Cypress
+    location: path
+    count: N flows/specs
+  mocking: mockk | fakes | none
+  test_commands:
+    - "./gradlew :composeApp:allTests"
+    - "npm test"
+
+ci_cd:
+  platform: GitHub Actions | GitLab CI
+  workflows: []
+  gating: description (e.g., QA Queue required for PRs)
+
+documentation_found:
+  - path: CLAUDE.md
+    content_summary: one-line
+  - path: README.md
+    content_summary: one-line
+  - path: docs/
+    content_summary: one-line
+
+existing_knowledge:
+  # Anything from .claude/ that Hive should know about
+  mcp_servers: [list from settings]
+  existing_skills: [list from .claude/skills]
+  existing_hooks: [list from settings]
+```
+
+### Phase 4: hive.config.yaml
+
+Create `hive.config.yaml` in the project root. This is Hive-specific config — NOT a duplicate of CLAUDE.md.
+
+**What goes in hive.config.yaml:**
+- Hive workflow settings (methodology, retry attempts, model tiers)
+- Task tracking config (Linear team, project, user ID)
+- Quality gate thresholds
+- Token budgets
+
+**What stays in CLAUDE.md:**
+- Build/test/lint commands
+- Code conventions and rules
+- Architecture decisions
+- Project-specific instructions for Claude
+
+**Never duplicate CLAUDE.md content in hive.config.yaml.**
+
+### Phase 5: Initialize Hive State
+
+- Create `state/cycle-state/` directory
+- Create `state/test-baseline/{project}/` if test swarm will be used
+- Create `state/epics/` directory
+
+### Phase 6: Present Onboarding Report
+
+```
+## Project Onboarding: {project_name}
+
+**Type:** Brownfield
+**Source:** CLAUDE.md + codebase discovery
+**Tech Stack:** {summary}
+**Architecture:** {pattern} with {DI}, {state mgmt}, {navigation}
+**Scale:** {N} source files, {M} modules
+
+### From CLAUDE.md
+{Key rules and conventions the agents must follow}
+
+### Discovered
+- {N} source directories mapped
+- {N} test files found ({unit count} unit, {e2e count} E2E)
+- CI/CD: {platform} with {N} workflows
+- {N} conventions identified from code
+
+### Test Infrastructure
+- Unit: {framework} at {location} — {count} files
+- E2E: {framework} at {location} — {count} flows
+- Coverage: {tool or "not configured"}
+- Gaps: {specific gaps identified}
+
+### Files Created
+- state/project-profile.yaml — comprehensive project profile
+- hive.config.yaml — Hive workflow configuration
+
+### Recommended Next Steps
+- Review the project profile for accuracy
+- /plugin-hive:plan — plan your first feature or improvement
+- /plugin-hive:standup — begin daily operations
+```
+
+---
 
 ## Step 2B: Greenfield — Product Kickoff
 
@@ -112,38 +238,36 @@ For a new project starting from scratch.
 
 1. **Brainstorming / Ideation**
    - Ask the user: "What are you building and why?"
-   - Use the analyst agent mindset to probe: target users, core problem, key differentiators
-   - If `$ARGUMENTS` contains a description, use it as the starting point
-   - Facilitate structured ideation: what's in scope, what's explicitly out
+   - Use the analyst agent mindset: target users, core problem, key differentiators
+   - If `$ARGUMENTS` has a description, use as starting point
+   - Facilitate: what's in scope, what's explicitly out
    - Output: captured product concept with user validation
 
 2. **Product Brief**
-   - Synthesize the brainstorming into a structured product brief
+   - Synthesize into structured brief
    - Sections: Problem, Target Users, Core Features (P0/P1/P2), Success Metrics, Scope Boundaries
    - Write to `state/planning/product-brief.md`
    - Present for user approval before proceeding
 
 3. **PRD (Product Requirements Document)**
-   - Expand the brief into detailed requirements
-   - Each requirement gets: description, user value statement, acceptance criteria (Given/When/Then)
+   - Expand brief into detailed requirements
+   - Each requirement: description, user value, acceptance criteria (Given/When/Then)
    - Write to `state/planning/prd.md`
    - Present for user approval
 
 4. **Architecture**
-   - Architect agent evaluates: tech stack, component design, API contracts, data model
-   - Documents decisions with alternatives considered and rationale
+   - Architect agent: tech stack, components, API contracts, data model
+   - Decisions with alternatives considered and rationale
    - Write to `state/planning/architecture.md`
    - Present for user approval
 
 5. **Epics & Stories**
-   - Decompose PRD requirements into epics and stories
-   - Use the standard `/plugin-hive:plan` flow for story creation
+   - Decompose PRD into epics and stories via `/plugin-hive:plan`
    - Apply agent-ready checklist to every story
-   - Write epics and stories to `state/epics/`
+   - Write to `state/epics/`
 
 6. **Initialize Cycle State**
    - Create `state/cycle-state/{epic-id}.yaml` with all decisions from steps 2-4
-   - Technology choices, naming conventions, scope boundaries — all captured
 
 7. **Present Kickoff Summary**
    ```
@@ -159,6 +283,8 @@ For a new project starting from scratch.
    Run /plugin-hive:execute {epic-id} to begin development.
    Or /plugin-hive:standup to start daily operations.
    ```
+
+---
 
 ## Shared Resources
 
