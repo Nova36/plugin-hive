@@ -27,10 +27,14 @@ context_window:
   degradation_threshold: 0.85
 
 # External task tracking
+# Set adapter to enable. Team/prefix are required for Linear.
 task_tracking:
   adapter: null              # linear, github, jira — null = disabled
   queue_name: "Hive — Human Intervention"
   auto_expire_days: 7
+  # Linear-specific (required when adapter: linear)
+  linear_team: null          # your Linear team key (e.g., "ENG", "HOM")
+  linear_prefix: "[Hive]"   # prefix for Hive-created issues
 
 # Model tier routing
 # Assigns the right model to the right job. Orchestrator and complex reasoning
