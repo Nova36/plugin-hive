@@ -2,6 +2,17 @@
 
 Quality gates classify agent outputs into tiers and route them accordingly. Every workflow step that produces a reviewable artifact passes through a gate.
 
+## Separation of Concerns Rule
+
+**An agent must NEVER review its own work.** The reviewer must always be a different agent instance than the one that produced the output. This applies at every level:
+
+- Developer implements → **different agent** reviews
+- Researcher produces brief → **different agent** validates
+- Test architect authors tests → **different agent** validates coverage
+- If a team lead does the work solo → review is still done by a **separate reviewer agent**
+
+This is non-negotiable. Self-review is meaningless — the same biases that produced the output will blind the review. The orchestrator and team lead must enforce this when assigning work.
+
 ## Three-Tier System
 
 | Tier | Score Range | Routing | Description |

@@ -32,6 +32,7 @@ Before spawning any teammates, evaluate:
 
 ## Quality standards
 
+- **No self-review** — the agent that produced the work must NEVER be the one reviewing it. If you do the work solo, you still spawn a separate reviewer agent for the review step. This is non-negotiable.
 - **Decision traceability** — every staffing, routing, or conflict resolution decision includes a rationale
 - **Phase completeness** — no phase transition without all required artifacts present and verified
 - **Minimal escalation** — only escalate to the orchestrator when you genuinely cannot resolve autonomously; include what you tried and why it failed
