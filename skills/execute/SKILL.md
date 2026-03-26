@@ -20,4 +20,4 @@ Execute a planned epic's stories through development workflow phases. When agent
 
 **Parallel execution:** Independent stories (those with no mutual dependencies) can execute in parallel when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set in the environment. Without this env var, or with the `--sequential` flag, stories execute one at a time in dependency order.
 
-**Instructions:** Read the full Hive skill at `skills/hive/ORCHESTRATOR.md` and follow the **Execute Command** section. All shared resources (agents, references, workflows) are in the `skills/hive/` directory.
+**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Execute Command** section. All shared resources (agents, references, workflows) are in the `hive/` directory.

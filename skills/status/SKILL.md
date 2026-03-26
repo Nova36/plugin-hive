@@ -13,4 +13,4 @@ Report the status of active workflow epics.
 
 **Input:** `$ARGUMENTS` optionally contains an epic ID to filter to a single epic.
 
-**Instructions:** Read the full Hive skill at `skills/hive/ORCHESTRATOR.md` and follow the **Status Command** section. Episode files are in `state/episodes/` and epic files in `state/epics/`.
+**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Status Command** section. Episode files are in `state/episodes/` and epic files in `state/epics/`.

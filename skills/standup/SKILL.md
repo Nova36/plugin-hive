@@ -13,4 +13,4 @@ Run the daily ceremony workflow: standup → planning → execution.
 
 **Input:** `$ARGUMENTS` optionally contains an epic ID to focus on.
 
-**Instructions:** Read the full Hive skill at `skills/hive/ORCHESTRATOR.md` and follow the **Standup Command** section. The ceremony workflow is at `skills/hive/workflows/daily-ceremony.workflow.yaml`.
+**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Standup Command** section. The ceremony workflow is at `hive/workflows/daily-ceremony.workflow.yaml`.

@@ -14,4 +14,4 @@ Decompose a requirement into an epic with dependency-tracked stories.
 
 **Input:** `$ARGUMENTS` contains the requirement or feature description.
 
-**Instructions:** Read the full Hive skill at `skills/hive/ORCHESTRATOR.md` and follow the **Plan Command** section. All shared resources (agents, references, workflows) are in the `skills/hive/` directory.
+**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Plan Command** section. All shared resources (agents, references, workflows) are in the `hive/` directory.

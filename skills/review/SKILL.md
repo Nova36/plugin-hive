@@ -21,4 +21,4 @@ Run a structured code review workflow.
 
 If no arguments are provided, the review targets whatever is in the current working tree diff.
 
-**Instructions:** Read the full Hive skill at `skills/hive/ORCHESTRATOR.md` and follow the **Review Command** section. Agent personas are in `skills/hive/agents/`.
+**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Review Command** section. Agent personas are in `hive/agents/`.
