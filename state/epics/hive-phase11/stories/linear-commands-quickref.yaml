@@ -1,0 +1,47 @@
+id: linear-commands-quickref
+epic: hive-phase11
+title: Create Linear commands quick-reference card for agents
+status: pending
+complexity: low
+depends_on: [expand-task-tracking-adapter]
+
+description: |
+  Create a terse, copy-paste-ready command card that agents can reference
+  during execution. One section per ceremony phase with the exact linearis
+  commands. No prose — just commands and one-line descriptions.
+
+acceptance_criteria:
+  - "Given an agent needs to create a ticket, then the quickref has the exact command"
+  - "Given each ceremony phase, then commands are grouped and labeled"
+  - "Given the quickref, then it fits in one screenful (under 80 lines)"
+
+steps:
+  - id: create-quickref
+    description: |
+      Create skills/hive/references/linear-commands.md as a terse card:
+
+      ```
+      ## Standup
+      linearis issues search "project:plugin-hive" --team HOM --limit 50
+      linearis issues search "label:human-intervention" --team HOM --status "Todo,In Progress"
+
+      ## Planning
+      linearis issues create "Epic: {title}" --team HOM --project "plugin-hive" --labels "epic-parent"
+      linearis issues create "{story title}" --team HOM --project "plugin-hive" --labels "story" --parent-ticket HOM-{N} --status "Todo"
+
+      ## Execution (claim)
+      linearis issues read HOM-{N}  # check assignee
+      linearis issues update HOM-{N} --status "In Progress" --assignee {USER_ID}
+
+      ... etc per phase
+      ```
+    agent: developer
+
+context:
+  codebase: /Users/don/Documents/plugin-hive
+  key_files:
+    - skills/hive/references/task-tracking-adapter.md — adapter operations with CLI mappings
+
+files_to_modify:
+  - file: skills/hive/references/linear-commands.md
+    change: NEW FILE — terse command card

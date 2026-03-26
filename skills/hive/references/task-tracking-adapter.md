@@ -1,132 +1,202 @@
-# Task Tracking Adapter
+# Task Tracking Adapter — Full Lifecycle
 
-Interface for external task tracking tools. Items requiring human intervention are pushed to the tracker. The orchestrator surfaces pending items during standup as blockers.
+Linear is the project board for Hive workflows. Every ceremony phase interacts with Linear: planning creates tickets, execution claims them, testing transitions them, and push auto-closes them.
 
-**Active implementation:** Linear via `linearis` CLI.
+**Tool:** `linearis` CLI | **Team:** HOM | **Project:** plugin-hive
 
-## Adapter Interface
+## Board Design
 
-| Operation | Description |
-|-----------|-------------|
-| `createItem(item)` | Push a new item to the tracker |
-| `updateStatus(id, status)` | Update an item's status |
-| `listPending()` | List all items with non-terminal status |
-| `markResolved(id, resolution)` | Mark an item as resolved with a comment |
+### Status Flow
 
-## Item Schema
-
-```yaml
-id: auto-generated (e.g., HOM-5)
-title: "[Hive] Review wireframe for event detail screen"
-description: |
-  **Source:** epic/hive-phase7 → story/event-detail → step/ui-design
-  **Agent:** ui-designer
-  **Severity:** medium
-
-  The UI designer produced a wireframe that needs human approval.
-  See: state/wireframes/hive-phase7/event-detail/v1.png
-priority: 3               # 1=urgent, 2=high, 3=medium, 4=low
-status: Backlog            # Linear status: Backlog, Todo, In Progress, Done, Canceled
 ```
+Backlog → Todo → In Progress → In Review → Done
+                                          → Canceled
+```
+
+| Linear Status | Hive Meaning |
+|---|---|
+| Backlog | Story defined but not scheduled |
+| Todo | Scheduled for current cycle, not started |
+| In Progress | Agent claimed and executing (locked via assignee) |
+| In Review | Test swarm running or awaiting human review |
+| Done | Merged and closed (auto via GitHub integration) |
+| Canceled | Abandoned or descoped |
+
+### Labels
+
+| Label | Purpose |
+|-------|---------|
+| `epic-parent` | Marks an issue as the parent for a Hive epic |
+| `story` | Normal development story |
+| `bug` | Filed by test swarm during fix loop |
+| `human-intervention` | Blocker needing human action |
+
+### Hierarchy
+
+```
+plugin-hive (Linear Project)
+  └── Epic Parent Issue (label: epic-parent)
+        ├── Story Sub-Issue (label: story)
+        │     └── Bug Sub-Issue (label: bug)
+        └── Story Sub-Issue (label: story)
+```
+
+### Branch Naming Convention
+
+Pattern: `hom-{N}-{slug}`
+
+Example: `hom-42-fix-payment-flow`
+
+Linear's native GitHub integration detects `HOM-42` in the branch name and auto-links PRs. The orchestrator **must** create branches matching this pattern.
+
+## Adapter Operations
+
+### createEpicParent(title, description)
+
+Create the parent issue for a Hive epic.
+
+```bash
+linearis issues create "Epic: {epic-id} — {title}" \
+  --team HOM \
+  --project "plugin-hive" \
+  --labels "epic-parent" \
+  -d "{description}"
+```
+
+Returns: issue ID (e.g., `HOM-40`). Store in cycle state as `linear.epic_issue_id`.
+
+### createStoryIssue(title, description, parentId)
+
+Create a story as a sub-issue under the epic parent.
+
+```bash
+linearis issues create "{story title}" \
+  --team HOM \
+  --project "plugin-hive" \
+  --labels "story" \
+  --parent-ticket {parentId} \
+  --status "Todo" \
+  -d "{description with acceptance criteria}"
+```
+
+Returns: issue ID. Store in cycle state as `linear.stories.{id}.issue_id`.
+
+### createBugIssue(title, description, parentStoryId, priority)
+
+Create a bug as a sub-issue under the story where the test failed.
+
+```bash
+linearis issues create "Bug: {title}" \
+  --team HOM \
+  --project "plugin-hive" \
+  --labels "bug" \
+  --parent-ticket {parentStoryId} \
+  --priority {1-4} \
+  --status "In Progress" \
+  -d "{description with expected/actual/hypothesis}"
+```
+
+Priority mapping: 1=urgent, 2=high, 3=medium, 4=low.
+
+### claimIssue(issueId, userId)
+
+Assignment-based locking. Check assignee before claiming.
+
+```bash
+# Step 1: Check if locked
+linearis issues read {issueId}
+# If assignee is not null → LOCKED, skip or wait
+
+# Step 2: Claim (assign + move to In Progress)
+linearis issues update {issueId} \
+  --status "In Progress" \
+  --assignee {userId}
+```
+
+Update cycle state: `linear.stories.{id}.assignee = userId`, `linear.stories.{id}.status = "In Progress"`.
+
+### releaseIssue(issueId)
+
+Clear assignment lock. Status depends on outcome.
+
+```bash
+# Release after completion
+linearis issues update {issueId} --assignee ""
+
+# Status updated separately based on outcome:
+# Done → auto via GitHub merge
+# Backlog → deferred to future session
+```
+
+Update cycle state: `linear.stories.{id}.assignee = null`.
+
+### updateStatus(issueId, status)
+
+Transition a ticket's status.
+
+```bash
+linearis issues update {issueId} --status "{status}"
+```
+
+Valid statuses: Backlog, Todo, In Progress, In Review, Done, Canceled.
+
+### queryBoard(project)
+
+Get all issues grouped by status for the standup board view.
+
+```bash
+# All issues in the project
+linearis issues search "" --project "plugin-hive" --team HOM --limit 50
+
+# Blockers only
+linearis issues search "" --project "plugin-hive" --team HOM --status "Todo,In Progress" --limit 50
+# Filter results for label: human-intervention
+```
+
+Note: `linearis issues search` returns JSON with status, assignee, labels, and priority. The orchestrator filters and groups client-side.
+
+### readIssue(issueId)
+
+Get full details on a single issue.
+
+```bash
+linearis issues read {issueId}
+```
+
+### addComment(issueId, body)
+
+Add context or resolution notes to a ticket.
+
+```bash
+linearis comments create {issueId} --body "{comment text}"
+```
+
+## Assignment-Based Locking Protocol
+
+```
+CLAIM(issue_id):
+  1. issue = linearis issues read {issue_id}
+  2. IF issue.assignee != null → LOCKED — do not claim
+  3. linearis issues update {issue_id} --assignee {USER_ID} --status "In Progress"
+  4. Update cycle state: stories.{id}.assignee = USER_ID
+
+RELEASE(issue_id):
+  1. linearis issues update {issue_id} --assignee ""
+  2. Update cycle state: stories.{id}.assignee = null
+  3. Status updated separately (Done via GitHub, or Backlog if deferred)
+```
+
+The user ID is resolved at session start from `hive.config.yaml` (`task_tracking.linear_user_id`) or by running `linearis users list --active`.
 
 ## When Items Are Created
 
-Agents don't push items directly — the orchestrator or team lead creates them when:
-
-- A quality gate escalates to human (low-confidence output)
-- A touchpoint requires user approval (wireframes, plan confirmation)
-- An agent identifies a blocker it can't resolve autonomously
-- A story fails after retry exhaustion
-- A terminal issue is encountered during the fix loop
-
-## Standup Integration
-
-During the daily standup ceremony, the orchestrator runs `listPending()` to surface:
-- Items waiting for human input (blockers)
-- Items recently resolved (unblocked work)
-
----
-
-## Linear Implementation (via linearis CLI)
-
-**Prerequisites:**
-- `linearis` installed (`pnpm add -g linearis`)
-- Authenticated via `LINEAR_API_TOKEN` env var or `~/.linear_api_token` file
-
-**Team:** `HOM` (Homelab12804)
-
-### Create Item
-
-```bash
-linearis issues create "[Hive] {title}" \
-  -d "{description with source context}" \
-  --team HOM \
-  --priority {1-4}
-```
-
-Priority mapping:
-| Hive Severity | Linear Priority | Value |
-|---------------|----------------|-------|
-| critical | Urgent | 1 |
-| high | High | 2 |
-| medium | Medium | 3 |
-| low | Low | 4 |
-
-### List Pending
-
-```bash
-linearis issues list --limit 50
-```
-
-Filter in the orchestrator for items with `[Hive]` prefix and non-terminal status (not "Done" or "Canceled").
-
-### Update Status
-
-```bash
-# Move to In Progress
-linearis issues update HOM-{N} -s "In Progress"
-
-# Mark as Done
-linearis issues update HOM-{N} -s "Done"
-
-# Add resolution comment
-linearis comments create HOM-{N} --body "Resolved: {resolution notes}"
-```
-
-### Read Item
-
-```bash
-linearis issues read HOM-{N}
-```
-
-### Linear Status Flow
-
-```
-Backlog → Todo → In Progress → Done
-                             → Canceled
-```
-
-## Orchestrator Usage Examples
-
-**Creating a blocker during fix loop:**
-```bash
-linearis issues create "[Hive] BLOCKED: Payment API returns 500 — needs API key rotation" \
-  -d "**Source:** epic/shindig-v2 → story/payment-flow → step/test-execution\n**Agent:** test-worker\n**Severity:** high\n\nPayment API consistently returns 500. Attempted: retry, different endpoints, mock fallback. Root cause: API key expired. Human needs to rotate the key in production config." \
-  --team HOM \
-  --priority 2
-```
-
-**Listing blockers during standup:**
-```bash
-linearis issues list --limit 50
-# Orchestrator filters for [Hive] prefix + status != Done/Canceled
-```
-
-**Resolving after human action:**
-```bash
-linearis comments create HOM-12 --body "API key rotated. Payment endpoint responding. Dev team can retry."
-linearis issues update HOM-12 -s "Done"
-```
+| Trigger | Operation | Label |
+|---------|-----------|-------|
+| `/hive:plan` creates stories | createEpicParent + createStoryIssue per story | epic-parent, story |
+| Quality gate escalates to human | createStoryIssue with human-intervention label | human-intervention |
+| Terminal issue during fix loop | createBugIssue with high priority | bug, human-intervention |
+| Test swarm files a bug | createBugIssue under the story | bug |
+| Agent can't resolve a blocker | createStoryIssue with human-intervention | human-intervention |
 
 ## Configuration
 
@@ -138,4 +208,7 @@ task_tracking:
   auto_expire_days: 7
   linear_team: HOM
   linear_prefix: "[Hive]"
+  linear_project: "plugin-hive"
+  linear_user_id: "eb8b9543-48b6-4570-bc53-50c6b22b201a"
+  branch_prefix: "hom"
 ```

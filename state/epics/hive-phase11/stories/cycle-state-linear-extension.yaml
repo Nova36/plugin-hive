@@ -1,0 +1,53 @@
+id: cycle-state-linear-extension
+epic: hive-phase11
+title: Add Linear ticket tracking to cycle state schema
+status: pending
+complexity: low
+depends_on: [linear-board-setup]
+
+description: |
+  Extend the cycle state schema to track Linear issue IDs alongside Hive stories.
+  This lets every workflow phase look up the Linear ticket for the story it's working
+  on without querying Linear. The cycle state becomes the source of truth for the
+  Hive ↔ Linear ID mapping.
+
+acceptance_criteria:
+  - "Given a cycle state YAML, when the linear section exists, then it maps epic→parent issue and story→sub-issue IDs"
+  - "Given a story is created in Linear during planning, then its issue ID is recorded in cycle state"
+  - "Given the orchestrator reads cycle state, then it can find the Linear ticket ID for any story"
+
+steps:
+  - id: extend-schema
+    description: |
+      Update skills/hive/references/cycle-state-schema.md to add:
+
+      ```yaml
+      linear:
+        epic_issue_id: "HOM-40"
+        stories:
+          story-id:
+            issue_id: "HOM-41"
+            status: "In Progress"
+            assignee: "user-uuid"
+            branch: "hom-41-story-slug"
+        bugs:
+          - issue_id: "HOM-55"
+            parent_story: "story-id"
+            status: "Done"
+      ```
+
+      Document when each field is written (planning creates, execution updates,
+      session end finalizes).
+    agent: developer
+
+context:
+  codebase: /Users/don/Documents/plugin-hive
+  key_files:
+    - skills/hive/references/cycle-state-schema.md — schema to extend
+
+files_to_modify:
+  - file: skills/hive/references/cycle-state-schema.md
+    change: Add linear section with epic_issue_id, stories, bugs fields
+
+references:
+  - skills/hive/references/cycle-state-schema.md

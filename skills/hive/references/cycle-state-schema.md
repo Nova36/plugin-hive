@@ -101,3 +101,41 @@ When a planning swarm hands off to a dev swarm, the cycle state transfers as par
 | `naming` | object | Naming conventions (product, package, API prefix, etc.) |
 | `scope_boundaries` | object | Explicit in-scope and out-of-scope items |
 | `technology` | object | Technology stack decisions |
+| `linear` | object | Linear ticket ID mapping (see below) |
+
+## Linear Ticket Tracking
+
+The `linear` section maps Hive artifacts to Linear issue IDs. This is the source of truth — the orchestrator reads this instead of querying Linear for ID lookups.
+
+```yaml
+linear:
+  epic_issue_id: "HOM-40"           # Linear parent issue for this epic
+  user_id: "eb8b9543-..."           # Cached user ID for assignment locking
+  stories:
+    task-tracking-integration:
+      issue_id: "HOM-41"
+      status: "In Progress"
+      assignee: "eb8b9543-..."       # null when unlocked
+      branch: "hom-41-task-tracking-integration"
+    daily-ceremony-workflow:
+      issue_id: "HOM-42"
+      status: "Todo"
+      assignee: null
+  bugs:
+    - issue_id: "HOM-55"
+      parent_story: "task-tracking-integration"
+      status: "Done"
+      title: "null check missing in payment validator"
+```
+
+### When Fields Are Written
+
+| Field | Written During | By |
+|-------|---------------|-----|
+| `epic_issue_id` | Planning (epic parent created) | Orchestrator |
+| `stories.{id}.issue_id` | Planning (story sub-issues created) | Orchestrator |
+| `stories.{id}.status` | Each phase transition | Orchestrator/Team Lead |
+| `stories.{id}.assignee` | Execution claim / session-end release | Orchestrator/Team Lead |
+| `stories.{id}.branch` | Execution (branch created) | Team Lead |
+| `bugs[]` | Fix loop (bug sub-issues created) | Test Sentinel / Orchestrator |
+| `user_id` | Session start (resolved from config or linearis) | Orchestrator |

@@ -1,9 +1,10 @@
 name: daily-ceremony
-description: Daily orchestrator ceremony — standup, planning, execution.
-version: "1.0.0"
+description: Daily orchestrator ceremony — standup, planning, execution, testing, push.
+version: "2.0.0"
 
 # This workflow runs at session start with a fresh 1M Opus orchestrator.
 # It is NOT a development workflow — it coordinates the day's work.
+# Linear integration: see references/linear-integration.md and linear-commands.md
 
 phases:
   - id: standup
@@ -19,7 +20,13 @@ phases:
       5. Overnight improvements (any agent memory promotions or config changes)
       6. Continuation items (next stories in active epics)
 
-      Output: structured standup report for user review.
+      Linear operations:
+      - Query board: linearis issues search "" --project "plugin-hive" --team HOM --limit 50
+      - Surface blockers: filter for label:human-intervention + non-Done status
+      - Compare board state against previous cycle state to detect changes
+      - Present board view grouped by status (see references/linear-integration.md)
+
+      Output: structured standup report with board view for user review.
     agent: orchestrator
 
   - id: planning
@@ -33,6 +40,12 @@ phases:
       4. Planning swarm reports back with proposed stories
       5. Run agent-ready checklist on proposed stories
       6. Present plan for user approval
+
+      Linear operations (after approval):
+      - Create epic parent if new epic: createEpicParent(title, description)
+      - Create story sub-issues: createStoryIssue(title, description, epicIssueId) per story
+      - Record all issue IDs in cycle state (linear.epic_issue_id, linear.stories.{id}.issue_id)
+      - All stories start as status: Todo
 
       This is a compressed version of /hive:plan — the user provides direction,
       not a full brief.
@@ -54,6 +67,11 @@ phases:
       5. Write status markers after each step
       6. Capture insights for session-end evaluation
       7. Update cycle state with decisions made
+
+      Linear operations:
+      - Claim ticket: claimIssue(issueId, userId) — check assignee, assign, In Progress
+      - Create branch: git checkout -b hom-{N}-{slug} (enables GitHub auto-link)
+      - Update cycle state: stories.{id}.status, assignee, branch
     agent: orchestrator
     depends_on: [planning]
 
@@ -64,7 +82,8 @@ phases:
       fixes are committed separately so the git history shows the dev work
       and each subsequent fix as distinct commits.
 
-      Commit message should reference the epic and stories completed.
+      Commit message must reference the Linear ticket: "Refs: HOM-{N}"
+      Linear detects this and links the commit to the issue.
     agent: orchestrator
     depends_on: [execution]
 
@@ -80,6 +99,10 @@ phases:
 
       High-severity bugs escalate to human via task tracker.
       Low-severity bugs auto-route to dev queue for fixing.
+
+      Linear operations:
+      - Move story to In Review: linearis issues update HOM-{N} --status "In Review"
+      - Update cycle state: stories.{id}.status = "In Review"
     agent: orchestrator
     depends_on: [commit]
 
@@ -93,11 +116,16 @@ phases:
 
       Each fix gets its own commit so git history is traceable:
       - Commit 1: original dev work
-      - Commit 2: fix for bug #1
+      - Commit 2: fix for bug #1 (commit message: "fix: ... Fixes: HOM-{bug-N}")
       - Commit 3: fix for bug #2
 
-      If all bugs are resolved, proceed to session end.
+      If all bugs are resolved, proceed to final review.
       If bugs remain unresolved, surface them for tomorrow's standup.
+
+      Linear operations:
+      - Create bug sub-issues: createBugIssue(title, desc, parentStoryId, priority)
+      - Close fixed bugs: linearis issues update HOM-{bug-N} --status "Done"
+      - Record bugs in cycle state: linear.bugs[]
 
       TERMINAL ISSUES: If a bug cannot be resolved by a development fix —
       architectural flaw, missing dependency, environment issue, broken
@@ -105,9 +133,8 @@ phases:
       judgment or access the agent doesn't have — then:
       1. STOP the fix loop immediately
       2. Mark the story as BLOCKED (not failed — it's waiting, not dead)
-      3. Push a high-severity item to the task tracker with full context:
-         what was attempted, why it can't be fixed autonomously, what the
-         human needs to do or decide
+      3. Escalate in Linear: add human-intervention label, set priority 1,
+         add comment with full context (what was tried, why it failed, what human needs to do)
       4. Notify the user directly (don't bury it in a report)
       5. Continue with any remaining non-blocked work
       6. The blocked item surfaces in tomorrow's standup as a blocker
@@ -125,6 +152,8 @@ phases:
 
       If the review returns needs_revision: route back to fix-loop.
       If the review returns passed or needs_optimization: proceed to push.
+
+      No Linear operations — this is a code review gate only.
     agent: orchestrator
     depends_on: [fix-loop]
 
@@ -137,6 +166,12 @@ phases:
 
       If a PR is appropriate (feature branch), create one via gh CLI.
       If working on main, push directly (with user confirmation).
+
+      Linear operations:
+      - Push branch: git push -u origin hom-{N}-{slug}
+      - Linear auto-links PR via branch name (native GitHub integration)
+      - On merge: Linear auto-closes the linked issue → Done
+      - No linearis command needed — GitHub native handles it
     agent: orchestrator
     depends_on: [final-review]
 
@@ -147,5 +182,11 @@ phases:
       2. Update cycle state with the day's decisions
       3. Surface unresolved items for tomorrow's standup
       4. Clean up insight staging area
+
+      Linear operations:
+      - Release completed tickets: linearis issues update HOM-{N} --assignee ""
+      - Check for anomalies: linearis issues search "" --project "plugin-hive" --team HOM --status "In Progress"
+      - Leave blocked items assigned with human-intervention label (surfaces in next standup)
+      - Update cycle state linear section with final statuses
     agent: orchestrator
     depends_on: [push]

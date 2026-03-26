@@ -1,0 +1,38 @@
+id: update-configuration
+epic: hive-phase11
+title: Expand configuration with Linear-specific settings
+status: pending
+complexity: low
+depends_on: [expand-task-tracking-adapter]
+
+description: |
+  Expand hive.config.yaml and the configuration reference with Linear-specific
+  settings: project name, user ID for assignment, branch prefix.
+
+acceptance_criteria:
+  - "Given hive.config.yaml, then it has linear_project, linear_user_id, and branch_prefix settings"
+  - "Given the config reference, then all Linear settings are documented"
+
+steps:
+  - id: update-config
+    description: |
+      1. Update skills/hive/hive.config.yaml task_tracking section:
+         - linear_project: "plugin-hive"
+         - linear_user_id: null  # resolved during board setup
+         - branch_prefix: "hom"
+
+      2. Update skills/hive/references/configuration.md:
+         Add Linear settings to the task tracking table.
+    agent: developer
+
+context:
+  codebase: /Users/don/Documents/plugin-hive
+  key_files:
+    - skills/hive/hive.config.yaml — config to update
+    - skills/hive/references/configuration.md — reference to update
+
+files_to_modify:
+  - file: skills/hive/hive.config.yaml
+    change: Add linear_project, linear_user_id, branch_prefix
+  - file: skills/hive/references/configuration.md
+    change: Document new Linear settings

@@ -115,6 +115,24 @@ Reference docs (read when needed, don't inline):
 - `skills/hive/references/methodology-routing.md` — methodology selection
 - `skills/hive/references/agent-memory-schema.md` — agent memory format, insight capture, session-end evaluation
 - `skills/hive/references/cycle-state-schema.md` — persistent decision tracking across phases
+- `skills/hive/references/linear-integration.md` — per-phase Linear operations
+- `skills/hive/references/linear-commands.md` — copy-paste linearis CLI commands
+- `skills/hive/references/task-tracking-adapter.md` — full lifecycle adapter interface
+
+## Linear board management
+
+At session start, resolve the user ID from `hive.config.yaml` (`task_tracking.linear_user_id`) or run `linearis users list --active`.
+
+**Key responsibilities:**
+- **Planning:** Create epic parent + story sub-issues in Linear. Record IDs in cycle state.
+- **Execution:** Claim tickets (assignment lock) before assigning work. Enforce branch naming: `hom-{N}-{slug}`.
+- **Testing:** Move tickets to In Review. Create bug sub-issues for test failures.
+- **Push:** Branch naming triggers GitHub auto-link. Merge auto-closes tickets.
+- **Session end:** Release assignments on completed tickets. Leave blocked tickets assigned with human-intervention label.
+
+**Branch naming is mandatory.** Every branch must match `hom-{N}-{slug}` where N is the Linear issue number. Without this, GitHub-Linear auto-linking won't work.
+
+Read `references/linear-integration.md` for the full per-phase operations and `references/linear-commands.md` for copy-paste commands.
 
 ## Story status detection
 

@@ -1,0 +1,48 @@
+name: hive-phase11
+title: "Hive Phase 11: Full Linear Board Integration"
+description: |
+  Wire Linear into every phase of the daily ceremony. Full ticket lifecycle:
+  planning creates tickets as sub-issues under epic parents, execution claims
+  with assignment locking, commits link via branch naming convention, testing
+  moves to In Review, fix loop creates bug sub-issues, final review + push
+  auto-closes via GitHub native integration, session end unassigns and surfaces
+  blockers. Board queries during standup show grouped status view.
+target_codebase: /Users/don/Documents/plugin-hive
+
+stories:
+  - id: linear-board-setup
+    title: Verify Linear board configuration and create labels
+    complexity: low
+    depends_on: []
+  - id: cycle-state-linear-extension
+    title: Add Linear ticket tracking to cycle state schema
+    complexity: low
+    depends_on: [linear-board-setup]
+  - id: expand-task-tracking-adapter
+    title: Rewrite task tracking adapter for full ticket lifecycle
+    complexity: medium
+    depends_on: [linear-board-setup]
+  - id: linear-integration-reference
+    title: Create Linear integration reference with per-phase commands
+    complexity: medium
+    depends_on: [expand-task-tracking-adapter]
+  - id: linear-commands-quickref
+    title: Create Linear commands quick-reference card for agents
+    complexity: low
+    depends_on: [expand-task-tracking-adapter]
+  - id: wire-daily-ceremony
+    title: Wire Linear operations into daily ceremony workflow
+    complexity: medium
+    depends_on: [linear-integration-reference, linear-commands-quickref]
+  - id: update-orchestrator-agent
+    title: Add Linear integration to orchestrator agent persona
+    complexity: low
+    depends_on: [linear-integration-reference, linear-commands-quickref]
+  - id: update-configuration
+    title: Expand configuration with Linear-specific settings
+    complexity: low
+    depends_on: [expand-task-tracking-adapter]
+  - id: github-linear-setup-guide
+    title: Document GitHub-Linear native integration setup
+    complexity: low
+    depends_on: [linear-board-setup]
