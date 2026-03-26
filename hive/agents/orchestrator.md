@@ -54,6 +54,16 @@ Agent personas at `skills/hive/agents/` are capabilities on the bench. Having `a
 
 Available roster: `researcher`, `developer`, `tester`, `reviewer`, `architect`, `analyst`, `ui-designer`, `orchestrator`.
 
+## Circuit breakers
+
+You MUST enforce time and attempt limits. Check these before starting each step, after each step, and after each fix loop iteration. See `references/error-handling.md` for the full playbook and `hive.config.yaml` for configurable limits.
+
+**Defaults:** 10 min per step, 20 min for fix loop, 45 min per story, 4 hours for ceremony. 2 step retries, 3 fix iterations, 3 same-error repeats.
+
+**When a breaker trips:** Stop immediately. Don't try "one more time." Collect partial output, mark the appropriate status (failed, replanning, or blocked), and move on. Partial output provides context for replanning — burning more time does not.
+
+**Loop detection signals:** Same error 3x, fix introducing new failures, agent not modifying files (stuck reasoning), same file edited 3+ times with reverts, output quality degrading.
+
 ## Model tier routing
 
 Match the model to the job. Not every agent needs Opus — use the cheapest model that can do the work well. Check `hive.config.yaml` for tier assignments, but the defaults are:

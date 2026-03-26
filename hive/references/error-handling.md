@@ -157,14 +157,65 @@ When a story is routed back to planning:
 
 ---
 
-## Convergence Detection
+## Circuit Breakers
 
-If any of these happen, stop retrying and change strategy:
+Three types of circuit breakers protect against wasted time and tokens. If ANY breaker trips, stop immediately and take the prescribed action.
 
-- **Same error 3 times** — the fix isn't working. Back to planning or escalate.
-- **Fix introduces new failures** — revert and try a different approach. If that also fails, back to planning.
-- **Agent output quality degrades** — context window exhaustion. Spawn fresh instance.
-- **Gate score not improving across retries** — the feedback isn't helping. Escalate to peer review or human.
+### 1. Time-Based Breakers
+
+| Scope | Time Limit | Action When Tripped |
+|-------|-----------|---------------------|
+| Single step | 10 minutes | Kill the agent. Mark step failed. Retry once with fresh instance. If second attempt also hits 10 min, mark story `needs-replanning`. |
+| Fix loop (all iterations) | 20 minutes total | Stop the loop. Mark story `needs-replanning` with all attempted fixes as context. |
+| Single story (all steps) | 45 minutes | Halt the story. Something is fundamentally wrong. Mark `needs-replanning` and move to next story. |
+| Full ceremony (all stories) | 4 hours | Begin session-end phase regardless. Push whatever is complete. Defer remaining work to next session. |
+
+**How to track:** Note the wall-clock time when starting each scope. Check elapsed time before starting each new step or iteration. The orchestrator is responsible for enforcing time limits.
+
+### 2. Attempt-Based Breakers
+
+| Scope | Max Attempts | Action When Tripped |
+|-------|-------------|---------------------|
+| Same step retry | 2 | Mark step failed |
+| Fix loop iterations | 3 | Back to planning |
+| Gate retry (review/test) | Per workflow config (default 2) | Escalate |
+| Same error repeated | 3 | Stop retrying — the approach is wrong |
+
+### 3. Progress-Based Breakers (Loop Detection)
+
+These detect when an agent is spinning without making progress:
+
+| Signal | Detection | Action |
+|--------|-----------|--------|
+| **Same error 3x** | Error message matches previous attempts | Stop. Back to planning or escalate. |
+| **Fix introduces new failures** | Test count regression after a fix | Revert the fix. Try one different approach. If that also regresses, back to planning. |
+| **Output quality degrading** | Response getting shorter, losing structure, forgetting instructions | Context window exhaustion. Spawn fresh instance with curated context. |
+| **Gate score not improving** | Score within ±0.05 across retries | Feedback isn't helping. Escalate to peer review or human. |
+| **Agent talking to itself** | Agent producing output but not modifying files or running commands | Stuck in reasoning loop. Kill and retry with more specific instructions. |
+| **Circular file edits** | Same file edited 3+ times with reverts | Stop. The approach is wrong. Back to planning. |
+
+### Orchestrator Enforcement
+
+The orchestrator MUST check circuit breakers:
+- **Before each step:** check elapsed time for story and ceremony
+- **After each step:** check attempt counts and progress signals
+- **After each fix loop iteration:** check fix loop time limit and iteration count
+
+If a breaker trips mid-agent-team, send shutdown to the team and collect whatever partial output exists. Partial output is better than no output — it provides context for the replanning phase.
+
+### Configurable Limits
+
+In `hive.config.yaml`:
+```yaml
+circuit_breakers:
+  step_timeout_minutes: 10
+  fix_loop_timeout_minutes: 20
+  story_timeout_minutes: 45
+  ceremony_timeout_hours: 4
+  max_step_retries: 2
+  max_fix_iterations: 3
+  max_same_error_repeats: 3
+```
 
 ---
 

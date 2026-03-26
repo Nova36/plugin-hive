@@ -67,6 +67,16 @@ model_tiers:
 model_overrides: {}
   # example: researcher: opus    # promote researcher to opus for complex projects
 
+# Circuit breakers — prevent wasted time and tokens
+circuit_breakers:
+  step_timeout_minutes: 10       # max time for a single workflow step
+  fix_loop_timeout_minutes: 20   # max time for all fix loop iterations combined
+  story_timeout_minutes: 45      # max time for a single story (all steps)
+  ceremony_timeout_hours: 4      # max time for the full daily ceremony
+  max_step_retries: 2            # retry a failed step this many times
+  max_fix_iterations: 3          # fix loop iterations before back-to-planning
+  max_same_error_repeats: 3      # same error N times = stop, change strategy
+
 # Execution defaults
 execution:
   default_methodology: classic
