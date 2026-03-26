@@ -9,7 +9,10 @@
   "plugins": [
     {
       "name": "plugin-hive",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "Nova36/plugin-hive"
+      },
       "description": "Multi-agent swarms for planning, development, testing, and code review with quality gates, agent memories, and daily ceremony workflow.",
       "version": "1.0.0"
     }
