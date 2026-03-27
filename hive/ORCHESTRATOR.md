@@ -301,7 +301,11 @@ After generating, present a summary to the user showing the dependency graph and
 
    **b. Execute each step sequentially** by spawning a subagent with:
    - The agent persona (from `agents/{agent}.md`) as system context
-   - The step's `task` description
+   - **If `step_file` exists on the workflow step:** read the step file and include it as the primary task instructions. The step file replaces the inline `task` field. The agent receives three layers of context:
+     1. Agent persona (WHO — identity, capabilities, quality standards)
+     2. Step file (HOW — exact procedure, execution rules, command templates, gating)
+     3. Story spec (WHAT — the specific feature to implement)
+   - **If `step_file` does not exist:** use the step's `task` description (existing behavior)
    - Any `inputs` from previous steps (resolved from step outputs or episode records)
    - The story's specification (description + acceptance criteria)
 

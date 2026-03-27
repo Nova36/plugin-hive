@@ -80,5 +80,5 @@ circuit_breakers:
 # Execution defaults
 execution:
   default_methodology: classic
-  parallel_teams: false
+  parallel_teams: true
   max_retry_attempts: 2

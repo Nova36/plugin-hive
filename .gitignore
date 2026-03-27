@@ -1,2 +1,4 @@
 state/
 agents/memories/
+.DS_Store
+*.log

@@ -11,7 +11,7 @@
       "name": "plugin-hive",
       "source": "./",
       "description": "Multi-agent swarms for planning, development, testing, and code review with quality gates, agent memories, and daily ceremony workflow.",
-      "version": "1.0.0"
+      "version": "1.0.2"
     }
   ]
 }

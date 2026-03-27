@@ -50,9 +50,24 @@ The team lead is the first decision point. They receive the story and decide:
 
 Agent personas at `skills/hive/agents/` are capabilities on the bench. Having `architect.md` doesn't mean you spawn an architect for every task. Any competent agent can port a blueprint, edit a config file, or write documentation.
 
-**Always use roster personas** — never spin up anonymous one-off agents with ad-hoc prompts. The roster personas have built-up personality and system prompts that produce consistent, quality output.
+**MANDATORY: Always use roster personas.** Never spin up anonymous one-off agents with ad-hoc prompts. The roster personas have built-up personality, tool knowledge, and system prompts that produce consistent, quality output. This is not guidance — it is a hard rule.
 
-Available roster: `researcher`, `developer`, `tester`, `reviewer`, `architect`, `analyst`, `ui-designer`, `orchestrator`.
+Available roster: `researcher`, `developer`, `tester`, `reviewer`, `architect`, `analyst`, `ui-designer`, `pair-programmer`, `peer-validator`, `team-lead`.
+
+### Pre-spawn checklist
+
+Before spawning ANY agent, complete this checklist:
+
+1. **Read the persona file.** Open `agents/{agent}.md` and read it. Do not assume you know what it says.
+2. **Inject the full persona as system context.** The agent's markdown file IS its system prompt. Pass it whole — do not summarize, excerpt, or improvise.
+3. **Check for step files.** If the workflow step has a `step_file` field, read the step file and include it in the agent's context alongside the persona. The step file is the procedure (HOW); the persona is the identity (WHO). See `references/step-file-schema.md`.
+4. **Match tools to persona.** If the persona references specific tools (Frame0 CLI, Firecrawl, linearis), confirm those tools are available in the session before spawning. If not, flag the gap — don't silently fall back to a generic agent.
+5. **Never improvise a replacement.** If a roster persona exists for the task (e.g., `ui-designer` for wireframes), you MUST use it. If the persona fails, the fix is to improve the persona — not to bypass it with an ad-hoc prompt.
+
+**Violation examples (never do these):**
+- Spawning a general-purpose agent to "create wireframes" when `ui-designer.md` exists
+- Writing an improvised system prompt that duplicates what a roster agent already covers
+- Blaming the tool when an agent fails — the problem is prompt quality or tool usage, not the instrument
 
 ## Circuit breakers
 
@@ -102,6 +117,20 @@ Before executing a story, check its `complexity` field and route accordingly:
 **Low complexity examples:** rename a variable, fix a typo, add a log statement, update a config value, simple one-file change with clear instructions.
 
 **The orchestrator makes this call.** Don't run a 5-minute research subagent for a 30-second file edit.
+
+## Research prompt construction
+
+When spawning a researcher agent, the quality of your prompt determines whether research takes 2 minutes or 48 minutes. Follow these rules:
+
+1. **Max 3 focused questions.** Never send 5+ sub-questions. If the story needs broader coverage, run two focused research passes rather than one sprawling one.
+2. **Name the files.** If the story's `key_files` or `files_to_modify` list specific paths, tell the researcher exactly which files to read. Don't say "explore the Event API" — say "read `src/services/event.service.ts` and `src/routes/events.routes.ts`."
+3. **Use direct reads for known files.** If the story already names the 3-4 files that matter, skip the researcher agent entirely — read them yourself (or have the developer read them) and move to implementation.
+4. **Never use subagent_type: Explore for research steps.** Use a standard general-purpose agent with the researcher persona. Explore agents are thorough by design and will sprawl.
+5. **Set a scope boundary.** Tell the researcher what is OUT of scope: "Do NOT read connection, invitation, or promo service files — only the event API."
+
+**Bad prompt:** "Understand the backend Event API. What models exist? What routes? What services? What middleware? What validation? What error handling? What tests? What patterns?"
+
+**Good prompt:** "Read `src/services/event.service.ts` and `src/routes/events.routes.ts`. Answer: (1) What CRUD operations exist? (2) What validation patterns are used? (3) What would need to change to add a recurring-event flag?"
 
 ## Decision protocols
 
