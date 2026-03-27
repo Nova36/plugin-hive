@@ -13,6 +13,7 @@ Route the user's request to the appropriate command based on their intent.
 | **plan** | `/hive:plan`, "plan this feature", "break into stories" | Decompose a requirement into an epic with stories |
 | **execute** | `/hive:execute`, "execute the epic", "run the workflow" | Execute stories through development phases |
 | **status** | `/hive:status`, "what's the status" | Check active workflow state |
+| **test** | `/hive:test`, "run tests", "test swarm" | Run the test swarm pipeline — context, authoring, execution, triage, report |
 | **review** | `/hive:review`, "review this code" | Run structured code review |
 
 Parse `$ARGUMENTS` to determine which command to run. If ambiguous, ask.

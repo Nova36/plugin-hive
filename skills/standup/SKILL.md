@@ -1,10 +1,6 @@
 ---
-name: hive:standup
-description: |
-  Run the daily ceremony: standup (previous work, blockers, human items),
-  compressed planning (user short-lists, orchestrator plans), and execution
-  (kick off dev teams). Use when starting a new day, "daily standup",
-  "start the day", "morning ceremony", or "what's on the board".
+name: standup
+description: Run the daily ceremony — standup, planning, execution.
 ---
 
 # Hive Standup
@@ -13,4 +9,4 @@ Run the daily ceremony workflow: standup → planning → execution.
 
 **Input:** `$ARGUMENTS` optionally contains an epic ID to focus on.
 
-**Instructions:** Read the full Hive skill at `hive/ORCHESTRATOR.md` and follow the **Standup Command** section. The ceremony workflow is at `hive/workflows/daily-ceremony.workflow.yaml`.
+**Instructions:** Read `hive/ORCHESTRATOR.md` and follow the **Standup Command** section. Ceremony workflow at `hive/workflows/daily-ceremony.workflow.yaml`.
