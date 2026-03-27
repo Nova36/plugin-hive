@@ -37,7 +37,11 @@ Rules:
 
 ## Team Prompt Generation
 
-Agent teams are created via the `TeamCreate` tool with natural language prompts, not by writing JSON config files. **CRITICAL: Use `TeamCreate`, NOT the `Agent` tool.** The `Agent` tool spawns inline subprocesses in the same tmux pane — teammates are invisible. `TeamCreate` spawns each teammate in a separate tmux pane that the user can monitor.
+Agent teams are created via the `TeamCreate` tool with natural language prompts, not by writing JSON config files.
+
+**Tool hierarchy:**
+- **Orchestrator → stories:** `TeamCreate` spawns each story-level teammate in a separate tmux pane.
+- **Teammates → workflow steps:** Each teammate uses the `Agent` tool internally to spawn sub-workers (researcher, developer, tester) for individual workflow steps. These run inline within the teammate's pane — this is correct.
 
 The execute command describes the team structure and dependencies in prose:
 

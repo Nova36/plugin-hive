@@ -261,7 +261,11 @@ After generating, present a summary to the user showing the dependency graph and
    If all four: use **agent team execution** (step 5 below).
    Otherwise: use **sequential execution** (step 6 below).
 
-   **IMPORTANT:** Use the `TeamCreate` tool for agent team execution — NOT the `Agent` tool. The `Agent` tool spawns inline subprocesses in the same pane. `TeamCreate` spawns visible teammates into separate tmux panes that the user can monitor. This is the entire point of agent teams.
+   **IMPORTANT — tool hierarchy:**
+   - **Orchestrator → stories:** Use `TeamCreate` to spawn story-level teammates into separate tmux panes. This is how the user monitors parallel work.
+   - **Teammates → workflow steps:** Teammates use the `Agent` tool to spawn sub-workers for individual workflow steps (researcher, developer, tester, etc). Sub-workers run inline within the teammate's pane — this is correct and expected.
+
+   The rule: `TeamCreate` for parallelizing stories across tmux panes. `Agent` for sequential workflow steps within a single story.
 
    See `references/agent-teams-guide.md` for agent teams detection and mechanics.
 
@@ -296,7 +300,7 @@ After generating, present a summary to the user showing the dependency graph and
    - Do NOT inline the full story content — each teammate reads their story YAML file directly. The prompt only provides the story ID, title, a one-sentence summary, and the episode output path.
    - For large epics (10+ stories), keep task descriptions minimal (ID + title + deps only) to avoid exceeding prompt limits.
 
-   After generating the prompt, pass it to the `TeamCreate` tool. Do NOT use the `Agent` tool — that creates inline subprocesses without tmux panes. `TeamCreate` spawns visible teammates in separate tmux panes. The team lead manages dependencies and monitors completion. When all tasks finish, proceed to the epic summary (step 7).
+   After generating the prompt, pass it to the `TeamCreate` tool. Each story-level teammate gets its own tmux pane. Within their pane, teammates use the `Agent` tool for individual workflow steps (research, implement, test, review). The team lead manages dependencies and monitors completion. When all tasks finish, proceed to the epic summary (step 7).
 
 6. **Sequential execution.** For each story (in dependency order):
 
