@@ -9,10 +9,12 @@ Reference: https://code.claude.com/docs/en/agent-teams
 Check whether agent teams are enabled by reading the environment variable:
 
 ```
-CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1    # or "true"
 ```
 
-If this env var is not set or is not `1`, agent teams are unavailable. The execute command must always fall back to sequential execution gracefully — no error messages, no warnings. Agent teams are an optimization, not a requirement.
+If this env var is not set (or is `0`/`false`), agent teams are unavailable. The execute command must always fall back to sequential execution gracefully — no error messages, no warnings. Agent teams are an optimization, not a requirement.
+
+Also check `hive.config.yaml` → `execution.parallel_teams: true`. Both the env var AND the config must be enabled.
 
 ## Mapping Epics to Teams
 
@@ -35,7 +37,9 @@ Rules:
 
 ## Team Prompt Generation
 
-Agent teams are created via natural language prompts to the team lead, not by writing JSON config files. The execute command describes the team structure and dependencies in prose:
+Agent teams are created via the `TeamCreate` tool with natural language prompts, not by writing JSON config files. **CRITICAL: Use `TeamCreate`, NOT the `Agent` tool.** The `Agent` tool spawns inline subprocesses in the same tmux pane — teammates are invisible. `TeamCreate` spawns each teammate in a separate tmux pane that the user can monitor.
+
+The execute command describes the team structure and dependencies in prose:
 
 ```
 Create a team to work on epic hive-phase3.

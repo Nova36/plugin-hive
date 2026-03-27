@@ -253,16 +253,19 @@ After generating, present a summary to the user showing the dependency graph and
 
 4. **Choose execution mode.** Determine whether to use agent teams or sequential execution:
 
-   1. Check: Is `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set to `1`?
-   2. Check: Does the topological sort reveal multiple stories at depth 0 (independent stories with no dependencies)?
-   3. Check: Is `--sequential` flag NOT present in arguments?
+   1. Check: Is `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set (value `1`, `true`, or `"true"`)?
+   2. Check: Does `hive.config.yaml` have `parallel_teams: true`?
+   3. Check: Does the topological sort reveal multiple stories at the same depth (independent stories that can run concurrently)?
+   4. Check: Is `--sequential` flag NOT present in arguments?
 
-   If all three: use **agent team execution** (step 5 below).
+   If all four: use **agent team execution** (step 5 below).
    Otherwise: use **sequential execution** (step 6 below).
+
+   **IMPORTANT:** Use the `TeamCreate` tool for agent team execution — NOT the `Agent` tool. The `Agent` tool spawns inline subprocesses in the same pane. `TeamCreate` spawns visible teammates into separate tmux panes that the user can monitor. This is the entire point of agent teams.
 
    See `references/agent-teams-guide.md` for agent teams detection and mechanics.
 
-5. **Agent team execution.** Generate a natural-language team creation prompt that describes the epic and its tasks. The prompt follows this shape:
+5. **Agent team execution.** Use the `TeamCreate` tool to spawn an agent team. Generate a natural-language team creation prompt that describes the epic and its tasks. The prompt follows this shape:
 
    ```
    Create a team to execute the "{epic-id}" epic.
@@ -293,7 +296,7 @@ After generating, present a summary to the user showing the dependency graph and
    - Do NOT inline the full story content — each teammate reads their story YAML file directly. The prompt only provides the story ID, title, a one-sentence summary, and the episode output path.
    - For large epics (10+ stories), keep task descriptions minimal (ID + title + deps only) to avoid exceeding prompt limits.
 
-   After generating the prompt, hand it to the agent team system. The team lead spawns teammates, manages dependencies, and monitors completion. When all tasks finish, proceed to the epic summary (step 7).
+   After generating the prompt, pass it to the `TeamCreate` tool. Do NOT use the `Agent` tool — that creates inline subprocesses without tmux panes. `TeamCreate` spawns visible teammates in separate tmux panes. The team lead manages dependencies and monitors completion. When all tasks finish, proceed to the epic summary (step 7).
 
 6. **Sequential execution.** For each story (in dependency order):
 
