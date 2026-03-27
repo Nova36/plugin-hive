@@ -50,7 +50,7 @@ For each screen in the manifest, in order:
 **a. Add device frame (ALWAYS FIRST)**
 
 ```bash
-cli-anything-frame-zero --project {file.f0} shape frame --page-id {page-id} --preset phone --left 0 --top 0
+cli-anything-frame-zero --project {file.f0} shape frame --page {page-id} --type phone --left 0 --top 0
 ```
 
 For dark backgrounds, add `--fill "#1C1B1F"` (or use the project's background color from design context).
@@ -60,7 +60,7 @@ For dark backgrounds, add `--fill "#1C1B1F"` (or use the project's background co
 Create rectangles for major screen regions (header, content sections, bottom nav):
 
 ```bash
-cli-anything-frame-zero --project {file.f0} shape rect --page-id {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r}
+cli-anything-frame-zero --project {file.f0} shape rect --page {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r}
 ```
 
 For colored sections, add `--fill "{color}"`.
@@ -71,20 +71,20 @@ Add text, icons, and images within the containers:
 
 ```bash
 # Text
-cli-anything-frame-zero --project {file.f0} shape text --page-id {page-id} --content "{text}" --left {x} --top {y} --font-size {size}
+cli-anything-frame-zero --project {file.f0} shape text --page {page-id} --content "{text}" --left {x} --top {y} --font-size {size}
 
 # Icon (search Lucide icons first if unsure of name)
 cli-anything-frame-zero icon search "{keyword}"
-cli-anything-frame-zero --project {file.f0} shape icon --page-id {page-id} --icon-name "{name}" --left {x} --top {y}
+cli-anything-frame-zero --project {file.f0} shape icon --page {page-id} --icon-name "{name}" --left {x} --top {y}
 
 # Image placeholder
-cli-anything-frame-zero --project {file.f0} shape rect --page-id {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r} --fill "#E0E0E0"
+cli-anything-frame-zero --project {file.f0} shape rect --page {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r} --fill "#E0E0E0"
 ```
 
 **d. Verify shapes (every 5 shapes or after completing a screen)**
 
 ```bash
-cli-anything-frame-zero --project {file.f0} shape list --page-id {page-id}
+cli-anything-frame-zero --project {file.f0} shape list --page {page-id}
 ```
 
 Count shapes. Compare against manifest build order. If shapes are missing, investigate before continuing.
@@ -92,34 +92,34 @@ Count shapes. Compare against manifest build order. If shapes are missing, inves
 ### 3. Standard phone coordinate grid
 
 ```
-Phone frame: 375 × 812
+Phone frame: 320 × 690
 
 y=0    ┌─────────────────────────┐
        │  Status bar area        │
-y=44   ├─────────────────────────┤
+y=38   ├─────────────────────────┤
        │  Header / Nav bar       │
-y=88   ├─────────────────────────┤
+y=76   ├─────────────────────────┤
        │                         │
        │  Content area           │
-       │  x: 16 to 359 (margins)│
+       │  x: 16 to 304 (margins)│
        │                         │
-y=724  ├─────────────────────────┤
+y=614  ├─────────────────────────┤
        │  Bottom nav / Tab bar   │
-y=812  └─────────────────────────┘
+y=690  └─────────────────────────┘
 
 Common widths:
-  Full width:         375
-  Content width:      343 (16px margins each side)
-  Card width:         343 (16px margins)
-  Half width:         167 (for 2-column grid with 9px gap)
-  Third width:        109 (for 3-column grid with 8px gap)
+  Full width:         320
+  Content width:      288 (16px margins each side)
+  Card width:         288 (16px margins)
+  Half width:         140 (for 2-column grid with 8px gap)
+  Third width:        90 (for 3-column grid with 8px gap)
 
 Common heights:
-  Button:             48 (corner-radius 8-12)
-  Input field:        48 (corner-radius 8)
-  Card:               80-120 (corner-radius 12)
-  List item:          56-72
-  Section header:     32 (font-size 14-16)
+  Button:             44 (corner-radius 8-12)
+  Input field:        44 (corner-radius 8)
+  Card:               72-108 (corner-radius 12)
+  List item:          48-64
+  Section header:     28 (font-size 14-16)
   Bottom sheet handle: 4 (corner-radius 2, centered)
 
 Spacing:
@@ -142,36 +142,36 @@ These are the ONLY commands you should use. Copy and fill placeholders. ALL comm
 
 ```bash
 # Device frame
-cli-anything-frame-zero --project {file.f0} shape frame --page-id {page-id} --preset phone --left 0 --top 0
+cli-anything-frame-zero --project {file.f0} shape frame --page {page-id} --type phone --left 0 --top 0
 
 # Device frame with dark background
-cli-anything-frame-zero --project {file.f0} shape frame --page-id {page-id} --preset phone --left 0 --top 0 --fill "#1C1B1F"
+cli-anything-frame-zero --project {file.f0} shape frame --page {page-id} --type phone --left 0 --top 0 --fill "#1C1B1F"
 
 # Rectangle (containers, cards, buttons, input fields)
-cli-anything-frame-zero --project {file.f0} shape rect --page-id {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r}
+cli-anything-frame-zero --project {file.f0} shape rect --page {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r}
 
 # Rectangle with fill color
-cli-anything-frame-zero --project {file.f0} shape rect --page-id {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r} --fill "{color}"
+cli-anything-frame-zero --project {file.f0} shape rect --page {page-id} --left {x} --top {y} --width {w} --height {h} --corner-radius {r} --fill "{color}"
 
 # Text
-cli-anything-frame-zero --project {file.f0} shape text --page-id {page-id} --content "{text}" --left {x} --top {y} --font-size {size}
+cli-anything-frame-zero --project {file.f0} shape text --page {page-id} --content "{text}" --left {x} --top {y} --font-size {size}
 
 # Icon (search first, then add)
 cli-anything-frame-zero icon search "{keyword}"
-cli-anything-frame-zero --project {file.f0} shape icon --page-id {page-id} --icon-name "{name}" --left {x} --top {y}
+cli-anything-frame-zero --project {file.f0} shape icon --page {page-id} --icon-name "{name}" --left {x} --top {y}
 
 # Image placeholder (colored rect)
-cli-anything-frame-zero --project {file.f0} shape rect --page-id {page-id} --left {x} --top {y} --width {w} --height {h} --fill "#E0E0E0"
+cli-anything-frame-zero --project {file.f0} shape rect --page {page-id} --left {x} --top {y} --width {w} --height {h} --fill "#E0E0E0"
 
 # Verify shapes on a page
-cli-anything-frame-zero --project {file.f0} shape list --page-id {page-id}
+cli-anything-frame-zero --project {file.f0} shape list --page {page-id}
 ```
 
 **FORBIDDEN PATTERNS:**
 ```bash
 # BAD — shell variable
 PG1="abc123"
-cli-anything-frame-zero --project "$F0" shape rect --page-id "$PG1" ...
+cli-anything-frame-zero --project "$F0" shape rect --page "$PG1" ...
 
 # BAD — multi-line with backslash
 cli-anything-frame-zero --project file.f0 shape rect \
@@ -189,7 +189,7 @@ cli-anything-frame-zero --project file.f0 shape add --type rect ...
 | Shape list shows fewer shapes than expected | Investigate which command failed. Re-run the missing command. |
 | Screen has more than 15 components | Build in batches of 5 shapes. Run `shape list` after each batch. |
 | Design context specifies dark theme | Use `--fill "#1C1B1F"` on device frame and appropriate dark colors on containers. |
-| Manifest specifies tablet or desktop frame | Use `--preset tablet` or `--preset desktop`. Adjust coordinates for larger canvas. |
+| Manifest specifies tablet or desktop frame | Use `--type tablet` or `--type desktop`. Adjust coordinates for larger canvas. |
 | Icon name not found in Lucide search | Use closest match or a rect placeholder. Note in design brief. |
 
 ## SUCCESS METRICS
@@ -197,7 +197,7 @@ cli-anything-frame-zero --project file.f0 shape add --type rect ...
 - [ ] Every page has a device frame as its first shape
 - [ ] All components from the manifest's build order have corresponding shapes
 - [ ] Shape list for each page shows expected component count
-- [ ] Shapes are positioned within frame bounds (not outside 375×812 for phone)
+- [ ] Shapes are positioned within frame bounds (not outside 320×690 for phone)
 - [ ] No shell variables or multi-line commands were used
 - [ ] Each screen was completed fully before starting the next
 - [ ] Design context colors/patterns were applied where specified
@@ -209,7 +209,7 @@ cli-anything-frame-zero --project file.f0 shape add --type rect ...
 - **Adding content before containers:** Shapes overlap or have wrong z-order.
 - **Jumping between screens:** Produces inconsistent screens with missing elements.
 - **Not verifying with shape list:** Silently missing shapes that were never created.
-- **Improvising CLI flags:** Using `--type` instead of `--preset`, wrong flag names, etc.
+- **Using wrong CLI flags:** Using `--preset` instead of `--type`, `--page-id` instead of `--page`, etc.
 - **Shapes outside frame bounds:** Components render outside the phone outline.
 - **Ignoring design context colors:** Wireframe doesn't match project's design language.
 

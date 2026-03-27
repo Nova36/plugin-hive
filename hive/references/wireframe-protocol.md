@@ -63,7 +63,7 @@ wireframes:
     Structured design brief text describing layout decisions,
     component choices, and interaction patterns.
   export_command: |
-    cli-anything-frame-zero --live export page --page-id "{page-id}" --format png --output state/wireframes/{epic-id}/{story-id}/approved.png
+    cli-anything-frame-zero --live export page --page "{page-id}" --format png --output state/wireframes/{epic-id}/{story-id}/approved.png
   renditions:
     - state/wireframes/{epic-id}/{story-id}/v1.png
     - state/wireframes/{epic-id}/{story-id}/v2.png

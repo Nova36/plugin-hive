@@ -43,7 +43,7 @@ PNGs go alongside the .f0 file:
 For each page, run the export command:
 
 ```bash
-cli-anything-frame-zero --live export page --page-id {page-id} --format png --output {output-path}
+cli-anything-frame-zero --live export page --page {page-id} --format png --output {output-path}
 ```
 
 After each export, verify the PNG exists:
@@ -60,8 +60,8 @@ Produce a script with all export commands for the user to run when Frame0 is ope
 ```bash
 # Export commands for {feature-name}
 # Run these with Frame0 desktop app open:
-cli-anything-frame-zero --live export page --page-id {page-id-1} --format png --output {path-1}
-cli-anything-frame-zero --live export page --page-id {page-id-2} --format png --output {path-2}
+cli-anything-frame-zero --live export page --page {page-id-1} --format png --output {path-1}
+cli-anything-frame-zero --live export page --page {page-id-2} --format png --output {path-2}
 ```
 
 Save to `{wireframe_dir}/export-commands.sh`.
@@ -86,7 +86,7 @@ EXPORT SUMMARY:
 
 ```bash
 # Export page as PNG (live mode only)
-cli-anything-frame-zero --live export page --page-id {page-id} --format png --output {output-path}
+cli-anything-frame-zero --live export page --page {page-id} --format png --output {output-path}
 
 # Verify export
 ls -la {output-path}

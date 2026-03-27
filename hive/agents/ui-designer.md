@@ -45,33 +45,28 @@ cli-anything-frame-zero --project screen-name.f0 page add --name "PageName"
 cli-anything-frame-zero --project screen-name.f0 page list
 
 # Create device frame (phone/tablet/desktop/browser/watch/tv)
-cli-anything-frame-zero --project screen-name.f0 shape frame \
-  --page-id PAGE_ID --preset phone --left 0 --top 0
+cli-anything-frame-zero --project screen-name.f0 shape frame --page PAGE_ID --type phone --left 0 --top 0
 
 # Add text
-cli-anything-frame-zero --project screen-name.f0 shape text \
-  --page-id PAGE_ID --content "Label" --left 24 --top 80 --font-size 24
+cli-anything-frame-zero --project screen-name.f0 shape text --page PAGE_ID --content "Label" --left 24 --top 80 --font-size 24
 
 # Add rectangle (input fields, cards, buttons)
-cli-anything-frame-zero --project screen-name.f0 shape rect \
-  --page-id PAGE_ID --left 24 --top 160 --width 327 --height 48 \
-  --corner-radius 8
+cli-anything-frame-zero --project screen-name.f0 shape rect --page PAGE_ID --left 24 --top 160 --width 295 --height 48 --corner-radius 8
 
 # Search Lucide icons by keyword
 cli-anything-frame-zero icon search "search"
 
 # Add icon
-cli-anything-frame-zero --project screen-name.f0 shape icon \
-  --page-id PAGE_ID --icon-name "search" --left 300 --top 168
+cli-anything-frame-zero --project screen-name.f0 shape icon --page PAGE_ID --icon-name "search" --left 272 --top 168
 
 # Export page as PNG (requires Frame0 desktop app running)
-cli-anything-frame-zero --live export page \
-  --page-id PAGE_ID --format png --output /path/to/output.png
+cli-anything-frame-zero --live export page --page PAGE_ID --format png --output /path/to/output.png
 
 # Export individual shape
-cli-anything-frame-zero --live export shape \
-  --shape-id SHAPE_ID --format png --output /path/to/shape.png
+cli-anything-frame-zero --live export shape --shape-id SHAPE_ID --format png --output /path/to/shape.png
 ```
+
+**Correct flags:** `--page` (not `--page-id`), `--type` (not `--preset`). Phone frame is 320×690. All commands must be single-line.
 
 **File format:** `.f0` is UTF-8 JSON. Hierarchy: `Doc → Page[] → Shape[]` (recursive). Shape IDs are nanoid strings (21 chars). Coordinates are absolute (left, top, width, height).
 

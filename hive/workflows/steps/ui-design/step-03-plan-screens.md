@@ -56,11 +56,11 @@ For each screen, define:
 **Component hierarchy (build order):**
 ```
 Screen: {ScreenName}
-├── Device frame (phone, 375×812)
-├── Header (rect: 0, 0, 375, 88)
-│   ├── Back button (icon: "arrow-left", 16, 44)
-│   ├── Title (text: "{title}", 56, 44, font-size 18)
-│   └── Action button (icon: "{icon}", 335, 44)
+├── Device frame (phone, 320×690)
+├── Header (rect: 0, 0, 320, 76)
+│   ├── Back button (icon: "arrow-left", 16, 38)
+│   ├── Title (text: "{title}", 48, 38, font-size 18)
+│   └── Action button (icon: "{icon}", 280, 38)
 ├── Content area
 │   ├── Section 1 (rect: 0, 88, 375, {height})
 │   │   ├── Component A (type, x, y, w, h)
@@ -75,29 +75,29 @@ Screen: {ScreenName}
 
 ### 3. Standard coordinate grid reference
 
-Use these standard positions for phone wireframes (375×812):
+Use these standard positions for phone wireframes (320×690):
 
 ```
 ┌─────────────────────────────────┐ y=0
-│  Status bar (system)            │ y=44
+│  Status bar (system)            │ y=38
 ├─────────────────────────────────┤
-│  Header / Navigation bar        │ y=88
+│  Header / Navigation bar        │ y=76
 ├─────────────────────────────────┤
 │                                 │
 │  Content area                   │
-│  (left margin: 16-24px)         │
-│  (content width: 327-343px)     │
+│  (left margin: 16px)            │
+│  (content width: 288px)         │
 │                                 │
-├─────────────────────────────────┤ y=724
-│  Bottom navigation / Tab bar    │ y=812
+├─────────────────────────────────┤ y=614
+│  Bottom navigation / Tab bar    │ y=690
 └─────────────────────────────────┘
 
 Common component heights:
-  Button: 48px (corner-radius 8-12)
-  Input field: 48px (corner-radius 8)
-  Card: 80-120px (corner-radius 12)
-  List item: 56-72px
-  Section header: 32px
+  Button: 44px (corner-radius 8-12)
+  Input field: 44px (corner-radius 8)
+  Card: 72-108px (corner-radius 12)
+  List item: 48-64px
+  Section header: 28px
   Spacing between elements: 8, 12, 16, or 24px
   Icon size: 24px (standard), 20px (small), 32px (large)
   Touch target minimum: 44×44px
@@ -116,7 +116,7 @@ For screens that overlap with existing .f0 files (from step 1 design context):
 SCREEN MANIFEST:
 
 Project name: {feature-name}
-Device: phone (375×812)
+Device: phone (320×690)
 Pages: {count}
 Design tokens: {colors, spacing from design context}
 
