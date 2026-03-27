@@ -1,9 +1,40 @@
 name: development-classic
 description: Classic development workflow — implement first, then test and review.
-version: "1.0.0"
+version: "2.0.0"
 methodology: classic
 
+# ENFORCEMENT RULES:
+# 1. Preflight MUST pass before any other step runs
+# 2. Research is skippable for low-complexity stories (orchestrator decides)
+# 3. Test step MUST produce test artifacts — review is BLOCKED without them
+# 4. Platform verification required for cross-platform stories
+# 5. Each step MUST run as a SEPARATE agent instance — no self-review, no shared context
+#    between researcher and developer (developer should not "remember" research shortcuts)
+
 steps:
+  - id: preflight
+    agent: researcher
+    task: >
+      Before any implementation, verify the project is in a buildable state:
+      1. Run the project's build command (from CLAUDE.md or project config)
+      2. Verify critical config files exist (check story context for platform-specific files)
+      3. If cross-platform: verify each platform builds independently
+      4. Report: build status per platform, missing configs, blocking issues
+
+      If preflight FAILS: halt execution. Mark story as blocked. The issue
+      must be resolved before any code changes. This prevents wasting time
+      implementing on a broken foundation.
+    depends_on: []
+    inputs:
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: preflight_status
+        type: string
+    optional: false
+    timeout_ms: 300000
+
   - id: research
     agent: researcher
     task: >
@@ -11,7 +42,11 @@ steps:
       existing patterns, potential risks, and any context needed for implementation.
       Produce a research brief covering: file locations, relevant patterns, integration
       points, and recommended approach.
-    depends_on: []
+
+      SKIP THIS STEP for low-complexity stories. The orchestrator decides based on
+      the story's complexity field. Low = skip research, read files directly.
+    depends_on:
+      - preflight
     inputs:
       - name: story_spec
         source: context
@@ -19,7 +54,8 @@ steps:
     outputs:
       - name: research_brief
         type: string
-    optional: false
+    optional: true
+    skip_when: "story.complexity == 'low'"
     timeout_ms: 300000
 
   - id: implement
@@ -29,6 +65,10 @@ steps:
       patterns identified in the research phase. Write clean, minimal code — only
       what is needed. Do not add extra features, error handling, or abstractions
       beyond the story scope.
+
+      IMPORTANT: You are a SEPARATE agent from the researcher. Do not rely on
+      context you "remember" from the research phase — work from the research
+      brief and story spec only. This ensures you follow the spec, not shortcuts.
     depends_on:
       - research
     inputs:
@@ -52,6 +92,10 @@ steps:
       in the story spec. Use the existing test patterns found during research. Include
       unit tests for core logic and integration tests for system boundaries. Verify
       tests pass against the implementation.
+
+      You MUST produce test artifacts (test files). This step cannot complete
+      with only a "tests look good" assessment — actual test code is required.
+      The review step is BLOCKED until test artifacts exist.
     depends_on:
       - implement
     inputs:
@@ -69,19 +113,59 @@ steps:
     outputs:
       - name: test_results
         type: string
+      - name: test_artifacts
+        type: artifact_ref
     optional: false
+    gate: "test_artifacts must not be empty"
+    timeout_ms: 600000
+
+  - id: platform-verify
+    agent: tester
+    task: >
+      For cross-platform stories: build and run on EACH target platform to verify
+      the implementation works everywhere, not just where it was developed.
+
+      1. Identify target platforms from story spec and project profile
+      2. Build on each platform (e.g., ./gradlew assembleDebug, xcodebuild)
+      3. Run platform-specific tests if they exist
+      4. Report: pass/fail per platform with any platform-specific issues
+
+      SKIP THIS STEP if the story is single-platform or backend-only.
+    depends_on:
+      - test
+    inputs:
+      - name: implementation
+        source: step_output
+        step_id: implement
+        output_name: implementation
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: platform_results
+        type: string
+    optional: true
+    skip_when: "story is single-platform or backend-only"
     timeout_ms: 600000
 
   - id: review
     agent: reviewer
     task: >
-      Review the implementation and tests for correctness, security, performance,
+      Review the implementation AND tests for correctness, security, performance,
       and convention compliance. Check that all acceptance criteria are satisfied.
-      Produce a verdict: passed, needs_optimization, or needs_revision. For
-      needs_optimization, list specific improvements. For needs_revision, list
-      blocking issues that must be fixed before merge.
+
+      GATE: This step MUST NOT run unless the test step produced actual test
+      artifacts. If test_artifacts is empty, reject and send back to test step.
+
+      If platform-verify ran, review those results too — flag any platform
+      where builds failed or tests didn't pass.
+
+      The reviewer MUST be a different agent instance than the developer.
+
+      Produce a verdict: passed, needs_optimization, or needs_revision.
     depends_on:
       - test
+      - platform-verify
     inputs:
       - name: implementation
         source: step_output
@@ -91,6 +175,14 @@ steps:
         source: step_output
         step_id: test
         output_name: test_results
+      - name: test_artifacts
+        source: step_output
+        step_id: test
+        output_name: test_artifacts
+      - name: platform_results
+        source: step_output
+        step_id: platform-verify
+        output_name: platform_results
       - name: research_brief
         source: step_output
         step_id: research

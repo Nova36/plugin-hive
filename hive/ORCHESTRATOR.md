@@ -96,6 +96,8 @@ After generating stories, scan each story's description and acceptance criteria 
      · event-detail — Redesign Event Detail View [4 steps, includes UI design]
    ```
 
+4. **BLOCKING GATE:** Stories with `ui-design` steps MUST NOT proceed to execution until wireframes are approved. The planning phase blocks on the wireframe touchpoints (see `references/wireframe-protocol.md`). This is enforced during planning, NOT during execution — by the time `/hive:execute` runs, the wireframe is already in the story YAML.
+
 **Important:** UI detection is a suggestion, not mandatory. The user reviews the plan before saving and can add or remove `ui-design` steps. The wireframe approval touchpoints (see `references/wireframe-protocol.md`) run during planning, so by execution time the stories already contain the approved wireframe context.
 
 **Edge cases:**

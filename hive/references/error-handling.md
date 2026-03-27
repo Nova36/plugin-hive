@@ -12,6 +12,19 @@ Every failure in the Hive workflow falls into one of three categories. The respo
 
 The key rule: **if it's not a human blocker, it goes back to planning — not into an infinite fix loop.**
 
+## Agent Isolation Principle
+
+Each workflow step MUST run as a **separate agent instance** with its own context. The developer must NOT share a context window with the researcher. Why:
+
+- When the same context runs both research and implementation, the developer "remembers" research shortcuts and doesn't follow the spec faithfully
+- A developer with research context may skip steps the spec requires because they saw the code during research
+- Self-review is meaningless when the reviewer shares context with the producer
+
+**Enforcement:**
+- With agent teams/worktrees: each step is a separate teammate with its own context
+- Without agent teams (single session): each step should be a **subagent spawn** with only its persona + step inputs, NOT the main session continuing to the next step
+- The step's inputs (research brief, story spec, etc.) are the ONLY context the next agent receives — not the full conversation history
+
 ---
 
 ## Per-Phase Error Handling

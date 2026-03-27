@@ -89,6 +89,20 @@ When spawning agents via the Agent tool, set the `model` parameter to match the 
 
 **Execution phase** (`/hive:execute`): developer, tester, reviewer. These implement, test, and review the stories. The researcher can be used in either phase.
 
+## Story complexity routing
+
+Before executing a story, check its `complexity` field and route accordingly:
+
+| Complexity | Research Phase | Implementation | Review |
+|------------|---------------|----------------|--------|
+| **low** | Skip subagent research. Orchestrator/team-lead reads the relevant files directly, then hands to developer. | Developer implements directly from story spec + file reads. | Still required (separate agent). |
+| **medium** | Standard research phase — researcher agent produces brief. | Developer implements from research brief. | Required. |
+| **high** | Full research phase, possibly with web research (Firecrawl). Consider architect consultation. | Developer implements from research + architecture context. | Required + peer validation. |
+
+**Low complexity examples:** rename a variable, fix a typo, add a log statement, update a config value, simple one-file change with clear instructions.
+
+**The orchestrator makes this call.** Don't run a 5-minute research subagent for a 30-second file edit.
+
 ## Decision protocols
 
 ### Three failure categories
