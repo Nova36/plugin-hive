@@ -44,7 +44,7 @@ Parse `$ARGUMENTS` to determine which command to run. If ambiguous, ask.
 
 1. **Research the codebase.** Before decomposing, explore the target codebase to understand the tech stack, architecture, existing patterns, and relevant files. Use the researcher agent mindset — you need concrete file paths, not guesses.
 
-2. **Load cross-cutting concerns.** Check for `cross-cutting-concerns.yaml` at the project root or in `state/`. If found, load the concerns — they will be evaluated per-story in step 3. See `references/cross-cutting-concerns.md` for the full specification.
+2. **Load cross-cutting concerns.** Check for `state/cross-cutting-concerns.yaml`. If found, load the concerns — they will be evaluated per-story in step 3. See `references/cross-cutting-concerns.md` for the full specification.
 
 3. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Each story should be independently implementable and testable.
 

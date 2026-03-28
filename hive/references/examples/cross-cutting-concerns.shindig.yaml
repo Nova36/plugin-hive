@@ -1,5 +1,5 @@
 # Cross-Cutting Concerns — Shindig
-# Place this file at your project root as cross-cutting-concerns.yaml
+# Place this file at state/cross-cutting-concerns.yaml
 
 concerns:
 
