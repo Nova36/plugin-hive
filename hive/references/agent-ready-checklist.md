@@ -14,6 +14,7 @@ Run this checklist against every story before saving during `/hive:plan`. Flag f
 | 6 | **Single session fit** | Can an agent complete this in one session (< ~5 files, well-scoped)? If not, break it down further. |
 | 7 | **Reference implementation** | Is there an existing file or pattern to follow? Agents produce better code when they have a concrete example. |
 | 8 | **Binary success criteria** | Are acceptance criteria pass/fail, not subjective? "Tests pass" not "code is clean." |
+| 9 | **Cross-cutting concerns** | Are all applicable concerns from `cross-cutting-concerns.yaml` identified in the story's `cross_cutting` section? Are actions specific (not just "handle caching" but "cache in-memory, 5min TTL, invalidate on mutation")? |
 
 ## How to Apply
 

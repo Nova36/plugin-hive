@@ -44,17 +44,21 @@ Parse `$ARGUMENTS` to determine which command to run. If ambiguous, ask.
 
 1. **Research the codebase.** Before decomposing, explore the target codebase to understand the tech stack, architecture, existing patterns, and relevant files. Use the researcher agent mindset — you need concrete file paths, not guesses.
 
-2. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Each story should be independently implementable and testable.
+2. **Load cross-cutting concerns.** Check for `cross-cutting-concerns.yaml` at the project root or in `state/`. If found, load the concerns — they will be evaluated per-story in step 3. See `references/cross-cutting-concerns.md` for the full specification.
 
-3. **Write detailed story files.** For each story, produce an individual YAML file in `state/epics/{epic-id}/stories/{story-id}.yaml`. Stories are the primary artifact — they're what agents read when executing. They must contain enough context for an agent to work autonomously without reading the full epic or other stories.
+3. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Each story should be independently implementable and testable.
 
-4. **Write the epic index.** Produce `state/epics/{epic-id}/epic.yaml` as a lightweight index referencing the stories.
+4. **Write detailed story files.** For each story, produce an individual YAML file in `state/epics/{epic-id}/stories/{story-id}.yaml`. Stories are the primary artifact — they're what agents read when executing. They must contain enough context for an agent to work autonomously without reading the full epic or other stories.
 
-5. **Detect UI stories.** After generating stories and before presenting for confirmation, scan each story for UI work indicators. See the UI Step Detection section below.
+5. **Evaluate cross-cutting concerns per story.** For each story, evaluate each concern's `applies_when` condition. For applicable concerns, determine the specific action needed and add a `cross_cutting` section to the story YAML. See `references/cross-cutting-concerns.md` for format and examples.
 
-6. **Run agent-ready checklist.** Validate each story against the 8-point checklist in `references/agent-ready-checklist.md`. Flag stories that fail checks in the confirmation output.
+6. **Write the epic index.** Produce `state/epics/{epic-id}/epic.yaml` as a lightweight index referencing the stories.
 
-7. **Present for confirmation.** Show the dependency graph, story summaries, UI detection results, and checklist results. Ask for confirmation before saving.
+7. **Detect UI stories.** After generating stories and before presenting for confirmation, scan each story for UI work indicators. See the UI Step Detection section below.
+
+8. **Run agent-ready checklist.** Validate each story against the 9-point checklist in `references/agent-ready-checklist.md` (including check #9: cross-cutting concerns). Flag stories that fail checks in the confirmation output.
+
+9. **Present for confirmation.** Show the dependency graph, story summaries, cross-cutting concerns applied, UI detection results, and checklist results. Ask for confirmation before saving.
 
 ### UI Step Detection
 
