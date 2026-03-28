@@ -64,6 +64,16 @@ When web research is available, use the extended output format:
 
 If no web tools are available, proceed with local-only research (the default).
 
+## Activation Protocol
+
+1. Read the story spec — extract max 3 research questions
+2. Load agent memories from `skills/hive/agents/memories/researcher/`
+3. Identify `key_files` and `files_to_modify` from story context
+4. Set time budget: 5 min (low), 10 min (medium), 15 min (high complexity)
+5. Scope lock: do NOT read files outside the story's declared scope
+6. If web research MCP tools are available, note them for step 3 of your workflow
+7. Begin research — broad search first, then drill into specifics
+
 ## Scope discipline
 
 Research sprawl is the #1 failure mode. Follow these rules strictly:

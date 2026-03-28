@@ -5,6 +5,7 @@ version: "1.0.0"
 steps:
   - id: gather-context
     agent: test-scout
+    step_file: workflows/steps/test-swarm/step-01-scout.md
     task: >
       Read the story spec, PR, or commit context. Cross-reference with baseline
       knowledge. Produce a structured context document covering what was built,
@@ -25,6 +26,7 @@ steps:
 
   - id: verify-baseline
     agent: test-scout
+    step_file: workflows/steps/test-swarm/step-01-scout.md
     task: >
       Check if baseline knowledge exists for this project. If missing, run a
       discovery pass: inspect codebase structure, detect test frameworks, map
@@ -48,6 +50,7 @@ steps:
 
   - id: author-tests
     agent: test-architect
+    step_file: workflows/steps/test-swarm/step-02-architect.md
     task: >
       Detect the project's test framework. Author test scripts for each
       acceptance criterion: happy paths, edge cases, error states. Map every
@@ -76,6 +79,7 @@ steps:
 
   - id: validate-coverage
     agent: test-inspector
+    step_file: workflows/steps/test-swarm/step-04-inspector.md
     task: >
       Validate that authored tests adequately cover the story's acceptance
       criteria. Map each requirement to its covering test(s). Identify gaps
@@ -102,6 +106,7 @@ steps:
 
   - id: execute-platform-a
     agent: test-worker
+    step_file: workflows/steps/test-swarm/step-03-worker.md
     task: >
       Execute authored tests on the primary platform. Detect connected
       devices/environments. Run each test, capturing pass/fail, timing,
@@ -125,6 +130,7 @@ steps:
 
   - id: execute-platform-b
     agent: test-worker
+    step_file: workflows/steps/test-swarm/step-03-worker.md
     task: >
       Execute authored tests on the secondary platform (if configured).
       Same protocol as platform-a but targeting a different device/browser/environment.
@@ -148,6 +154,7 @@ steps:
 
   - id: file-bugs
     agent: test-sentinel
+    step_file: workflows/steps/test-swarm/step-05-sentinel.md
     task: >
       Process all test failures from both platforms. For each failure: gather
       expected vs actual, screenshots, repro steps. Generate AI hypothesis on
@@ -175,8 +182,33 @@ steps:
     optional: false
     timeout_ms: 300000
 
+  - id: triage-failures
+    agent: test-sentinel
+    step_file: workflows/steps/test-swarm/step-06-triage.md
+    task: >
+      Categorize failures: transient (retry), story issue (back to planning),
+      human blocker (escalate). Map to error-handling categories. Produce
+      routing decisions for each bug.
+    depends_on:
+      - file-bugs
+    inputs:
+      - name: bug_reports
+        source: step_output
+        step_id: file-bugs
+        output_name: bug_reports
+      - name: context_doc
+        source: step_output
+        step_id: gather-context
+        output_name: context_doc
+    outputs:
+      - name: routing_decisions
+        type: string
+    optional: false
+    timeout_ms: 300000
+
   - id: compile-report
-    agent: team-lead
+    agent: test-inspector
+    step_file: workflows/steps/test-swarm/step-07-report.md
     task: >
       Compile the test session report. Synthesize: test results per platform,
       coverage analysis, bugs filed, severity distribution, and actionable
@@ -185,6 +217,7 @@ steps:
       - execute-platform-a
       - execute-platform-b
       - file-bugs
+      - triage-failures
       - validate-coverage
     inputs:
       - name: platform_a_results
@@ -199,12 +232,43 @@ steps:
         source: step_output
         step_id: file-bugs
         output_name: bug_reports
+      - name: routing_decisions
+        source: step_output
+        step_id: triage-failures
+        output_name: routing_decisions
       - name: coverage_report
         source: step_output
         step_id: validate-coverage
         output_name: coverage_report
     outputs:
       - name: session_report
+        type: string
+    optional: false
+    timeout_ms: 300000
+
+  - id: promote-baseline
+    agent: test-architect
+    step_file: workflows/steps/test-swarm/step-08-promote.md
+    task: >
+      Promote passing test patterns to baseline knowledge. Update baseline with
+      verified framework detections and regression candidates. Archive test
+      artifacts with timestamps.
+    depends_on:
+      - compile-report
+    inputs:
+      - name: session_report
+        source: step_output
+        step_id: compile-report
+        output_name: session_report
+      - name: test_manifest
+        source: step_output
+        step_id: author-tests
+        output_name: test_manifest
+      - name: baseline_path
+        source: context
+        context_key: baseline_path
+    outputs:
+      - name: promotion_summary
         type: string
     optional: false
     timeout_ms: 300000

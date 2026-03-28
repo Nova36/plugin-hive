@@ -39,6 +39,16 @@ phases:
 
       Output: structured standup report for user review.
     agent: orchestrator
+    steps:
+      - id: load-state
+        step_file: workflows/steps/daily-ceremony/step-01-load-state.md
+        agent: orchestrator
+      - id: load-memories
+        step_file: workflows/steps/daily-ceremony/step-02-load-memories.md
+        agent: orchestrator
+      - id: present-standup
+        step_file: workflows/steps/daily-ceremony/step-03-present-standup.md
+        agent: orchestrator
 
   - id: planning
     description: >
@@ -60,6 +70,16 @@ phases:
       - Linear: see references/linear-integration.md (Planning section)
     agent: orchestrator
     depends_on: [standup]
+    steps:
+      - id: select-work
+        step_file: workflows/steps/daily-ceremony/step-04-select-work.md
+        agent: orchestrator
+      - id: validate-stories
+        step_file: workflows/steps/daily-ceremony/step-05-validate-stories.md
+        agent: analyst
+      - id: approve-plan
+        step_file: workflows/steps/daily-ceremony/step-06-approve-plan.md
+        agent: orchestrator
 
   - id: execution
     description: >
@@ -84,6 +104,10 @@ phases:
       - Linear: see references/linear-integration.md (Execution section)
     agent: orchestrator
     depends_on: [planning]
+    steps:
+      - id: kick-off
+        step_file: workflows/steps/daily-ceremony/step-07-kick-off.md
+        agent: orchestrator
 
   - id: commit
     description: >
@@ -195,3 +219,7 @@ phases:
       - Linear: see references/linear-integration.md (Session End section)
     agent: orchestrator
     depends_on: [push]
+    steps:
+      - id: session-end
+        step_file: workflows/steps/daily-ceremony/step-08-session-end.md
+        agent: orchestrator
