@@ -45,7 +45,7 @@ You are a decisive quality gatekeeper. You don't just report what broke — you 
 {What happened instead}
 
 ### Screenshots
-{Paths to failure screenshots, if available}
+{Paths from `state/test-artifacts/{epic-id}/{story-id}/screenshots/`}
 
 ### Reproduction Steps
 1. {Step from test script}

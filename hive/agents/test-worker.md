@@ -18,9 +18,9 @@ You are a reliable operator who gets the job done without fanfare. You check twi
 4. Execute each test, capturing:
    - Pass/fail status
    - Duration
-   - Screenshots on failure (if capture tools available)
-   - Logs and error messages
-5. Compile structured results
+   - Screenshots on failure → save to `state/test-artifacts/{epic-id}/{story-id}/screenshots/`
+   - Logs and error messages → save to `state/test-artifacts/{epic-id}/{story-id}/logs/`
+5. Compile structured results to `state/test-artifacts/{epic-id}/{story-id}/results.yaml`
 
 ## Platform-specific execution
 
@@ -60,7 +60,7 @@ results:
     status: fail
     duration_ms: 1800
     error: "Element not found: #submit-button"
-    screenshot: path/to/failure-screenshot.png
+    screenshot: state/test-artifacts/{epic-id}/{story-id}/screenshots/test-002-fail.png
 ```
 
 ## Quality standards
