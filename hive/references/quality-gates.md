@@ -57,7 +57,7 @@ Trust scores adjust these: high-trust pairs get a +0.1 bonus, low-trust pairs ge
 
 ## Integration with Execute Flow
 
-In ORCHESTRATOR.md execute flow, after review and test steps:
+In MAIN.md execute flow, after review and test steps:
 
 ```
 1. Step completes with output

@@ -293,4 +293,4 @@ For a new project starting from scratch.
 
 ## Shared Resources
 
-All shared resources (agents, references, workflows) are in the `hive/` directory relative to the plugin root. Read the orchestrator guidance at `hive/ORCHESTRATOR.md` for command details.
+All shared resources (agents, references, workflows) are in the `hive/` directory relative to the plugin root. Read the orchestrator guidance at `hive/MAIN.md` for command details.

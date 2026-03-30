@@ -196,7 +196,7 @@ All paths relative to repo root:
 | Agent memories | `skills/hive/agents/memories/{agent}/` |
 | Cycle state | `state/cycle-state/{epic-id}.yaml` |
 | Insight staging | `state/insights/{epic-id}/{story-id}/` |
-| Orchestrator skill | `skills/hive/ORCHESTRATOR.md` |
+| Orchestrator skill | `skills/hive/MAIN.md` |
 
 Reference docs (read when needed, don't inline):
 - `skills/hive/references/episode-schema.md` — status marker format

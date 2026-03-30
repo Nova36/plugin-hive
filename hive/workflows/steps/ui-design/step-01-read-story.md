@@ -4,7 +4,7 @@
 
 - Read this entire step file before taking any action
 - Do NOT start planning screens until you have completed design context discovery
-- Do NOT read files outside the story spec and design context (no ORCHESTRATOR.md, no product briefs, no unrelated services)
+- Do NOT read files outside the story spec and design context (no MAIN.md, no product briefs, no unrelated services)
 - Do NOT assume the project has no existing wireframes — always check
 - Do NOT skip the design context discovery even if the story spec seems self-contained
 
@@ -30,7 +30,7 @@
 
 **NOT available (do not read or assume):**
 - Other story specs in the epic (each story is self-contained)
-- ORCHESTRATOR.md, GUIDE.md, or hive system files (not your concern)
+- MAIN.md, GUIDE.md, or hive system files (not your concern)
 - Product briefs or PRDs (unless referenced in story spec's `references` field)
 
 ## YOUR TASK

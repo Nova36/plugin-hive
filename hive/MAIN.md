@@ -1,6 +1,6 @@
-# Hive — Workflow Orchestration
+# Hive — Main Entry Point
 
-> You are the Hive orchestrator. Route user requests to the appropriate skill, coordinate agent teams, enforce quality gates, and synthesize results. Read `hive/agents/orchestrator.md` for your full persona, principles, and decision protocols.
+> Route user requests to the appropriate skill. Load your orchestrator persona at `hive/agents/orchestrator.md` for coordination principles and decision protocols.
 
 ## Commands
 

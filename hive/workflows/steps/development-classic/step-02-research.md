@@ -24,7 +24,7 @@ Scoped exploration producing a research brief. Stop when time budget expires or 
 **NOT available:**
 - Implementation code (doesn't exist yet)
 - Other story specs in the epic (each story is self-contained)
-- ORCHESTRATOR.md, product briefs, or hive system files
+- MAIN.md, product briefs, or hive system files
 
 ## YOUR TASK
 
@@ -89,7 +89,7 @@ Note which concerns apply to this story for inclusion in the brief.
 - **Scope drift:** Reading 20+ files when the story names 3-4. Stay on key_files.
 - **Re-reading files:** Reading event.service.ts 7 times at different offsets. Read once.
 - **48-minute research runs:** Time budget prevents this. Stop and produce brief with what you have.
-- **Reading orchestrator files:** ORCHESTRATOR.md, GUIDE.md are NOT research targets.
+- **Reading orchestrator files:** MAIN.md, GUIDE.md are NOT research targets.
 
 ## NEXT STEP
 

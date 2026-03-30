@@ -56,7 +56,7 @@ steps:
       summary. Group findings by category (security, correctness, performance,
       convention, clarity, testing). Lead with the verdict and critical issues.
       Produce the final review output in the format specified by the review
-      command in ORCHESTRATOR.md.
+      command in MAIN.md.
     depends_on:
       - analyze
       - review

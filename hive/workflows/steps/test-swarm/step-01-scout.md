@@ -25,7 +25,7 @@ Execute the full task sequence without user input. Produce the context report an
 
 **NOT available (do not read or assume):**
 - Other story specs in the epic
-- ORCHESTRATOR.md, GUIDE.md, or hive system files
+- MAIN.md, GUIDE.md, or hive system files
 - Test results from previous runs (those live in `state/test-artifacts/`)
 
 ## YOUR TASK
