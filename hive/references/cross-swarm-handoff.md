@@ -40,8 +40,8 @@ constraints:
   - "No new backend dependencies"
 
 naming:
-  product: Shindig
-  package: com.example.shindig
+  product: my-app
+  package: com.example.myapp
 ```
 
 ## Status Lifecycle

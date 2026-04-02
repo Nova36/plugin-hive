@@ -56,4 +56,4 @@ Traditional INVEST adapted for agent execution:
 | Context overflow | Front-load critical requirements, keep spec concise |
 | Architectural mismatch | Pre-make all design decisions in the spec |
 
-Source: `/Users/don/Documents/project-hive/docs/research/agent-ready-story-specs.md`
+Source: agent-ready story specs research

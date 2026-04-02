@@ -151,7 +151,7 @@ Added as check #9:
 
 The concerns YAML is project-specific. Different projects have different concerns:
 
-- **Mobile app (Shindig):** caching, migrations, analytics, test-tags, accessibility, maestro
+- **Mobile app:** caching, migrations, analytics, test-tags, accessibility, maestro (see `examples/cross-cutting-concerns.mobile-app.yaml` for a complete sample)
 - **Web SaaS:** caching, migrations, analytics, accessibility, SEO, rate-limiting
 - **API service:** caching, migrations, logging, rate-limiting, auth-scopes
 - **CLI tool:** none (or just "test coverage")

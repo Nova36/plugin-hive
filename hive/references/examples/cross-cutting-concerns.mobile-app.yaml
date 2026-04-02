@@ -1,4 +1,5 @@
-# Cross-Cutting Concerns — Shindig
+# Cross-Cutting Concerns — Mobile App Example
+# Customize this for your project. Copy to state/cross-cutting-concerns.yaml
 # Place this file at state/cross-cutting-concerns.yaml
 
 concerns:
@@ -7,7 +8,7 @@ concerns:
     name: Cache Strategy
     description: >
       Evaluate whether this story's data should be cached locally.
-      Shindig uses KMP so consider both iOS and Android cache layers.
+      Consider both iOS and Android cache layers if using KMP or cross-platform.
     applies_when: "Story involves API calls, data fetching, or repeated reads"
     planning_prompt: >
       Does this story fetch data that could benefit from caching? If yes:

@@ -82,7 +82,7 @@ BUILD REPORT:
 
 ## FAILURE MODES
 
-- **Testing against stale build:** The #1 reason this step exists. Shindig ran tests against pre-enhancement APK twice.
+- **Testing against stale build:** The #1 reason this step exists. A prior project ran tests against a pre-enhancement APK twice before catching the issue.
 - **Not verifying deploy:** Build succeeds but app doesn't install or launch.
 - **Skipping this step:** If the test swarm starts without a fresh build, all results are unreliable.
 

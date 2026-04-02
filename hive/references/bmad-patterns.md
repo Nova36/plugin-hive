@@ -22,7 +22,7 @@ What makes BMAD agents produce consistent, low-friction results, and how to appl
 
 **Fix:** Add an `## Activation Protocol` section to every Hive agent persona with numbered steps. Keep it lean (10-15 lines). Universal steps:
 1. Read story spec / task context
-2. Load agent memories from `skills/hive/agents/memories/{agent}/`
+2. Load agent memories from `~/.claude/hive/memories/{agent}/`
 3. Verify required tools (agent-specific)
 4. Confirm scope boundaries
 5. Execute
@@ -66,7 +66,7 @@ Role-specific steps after step 5 (developer gets test gates, researcher gets sco
 1. `hive.config.yaml` — global Hive settings
 2. `state/cycle-state/{epic-id}.yaml` — accumulated decisions for this epic
 3. Cross-cutting concerns (if present at `state/cross-cutting-concerns.yaml`)
-4. Agent memories from `skills/hive/agents/memories/{agent}/`
+4. Agent memories from `~/.claude/hive/memories/{agent}/`
 
 This isn't a new config file — it's making existing files part of the mandatory activation sequence.
 

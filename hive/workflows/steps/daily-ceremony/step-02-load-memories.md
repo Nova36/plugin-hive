@@ -18,7 +18,7 @@ Read memory files, filter for relevance, compile summary. No user interaction re
 
 **Inputs available:**
 - State reconstruction report from step 1 (active epics, story statuses)
-- `skills/hive/agents/memories/` — agent memory YAML files organized by agent name
+- `~/.claude/hive/memories/` — agent memory YAML files organized by agent name
 - `state/cross-cutting-concerns.yaml` — project-wide concerns (if present)
 
 **NOT available:**
@@ -32,7 +32,7 @@ Load agent memories and cross-cutting concerns relevant to today's active epics 
 ## TASK SEQUENCE
 
 ### 1. Scan agent memory directories
-List directories under `skills/hive/agents/memories/`. Each subdirectory is named for an agent (e.g., `developer/`, `tester/`, `architect/`). For each agent directory, list all `.md` memory files.
+List directories under `~/.claude/hive/memories/`. Each subdirectory is named for an agent (e.g., `developer/`, `tester/`, `architect/`). For each agent directory, list all `.md` memory files.
 
 ### 2. Read and filter memories
 For each memory file, read its YAML frontmatter to extract:
@@ -56,7 +56,7 @@ Check for `state/cross-cutting-concerns.yaml`. If present, read all concerns. Ea
 These will be used in step 5 (validate stories) to evaluate per-story applicability.
 
 ### 4. Compile memory summary
-Produce a structured summary:
+Produce a structured summary. This output is consumed by step 3 (standup report) and also cached for the execution phase — when agents are spawned later in the session, the orchestrator uses this pre-filtered memory index instead of re-scanning from scratch.
 
 ```
 ## Memory Summary
@@ -76,11 +76,18 @@ Produce a structured summary:
 
 ### Key Insights for Today
 - {Summarize the most important memories that should influence today's work}
+
+### Per-Agent Memory Index (for spawn-time injection)
+For each agent with relevant memories, list the memory file paths to inject:
+- {agent}: [{memory-file-1.md}, {memory-file-2.md}]
+- {agent}: [{memory-file-3.md}]
 ```
+
+The per-agent memory index is the key consumable output. When the orchestrator or team lead spawns an agent later in the session, they read this index rather than re-scanning the memory directories. This saves time and ensures consistency — the same memories identified during standup are the ones injected during execution.
 
 ## SUCCESS METRICS
 
-- [ ] All agent memory directories under `skills/hive/agents/memories/` scanned
+- [ ] All agent memory directories under `~/.claude/hive/memories/` scanned
 - [ ] Each memory file's frontmatter read and relevance evaluated
 - [ ] Cross-cutting concerns file checked and loaded (if present)
 - [ ] Memory summary produced with loaded, skipped, and key insight sections

@@ -18,7 +18,7 @@ Evaluate staged insights, promote or discard, clean up staging, produce session 
 
 **Inputs available:**
 - `state/insights/` — staged insight files from execution phase
-- `skills/hive/agents/memories/` — existing agent memories (to check for duplicates)
+- `~/.claude/hive/memories/` — existing agent memories (to check for duplicates)
 - `references/agent-memory-schema.md` — keep/discard criteria, memory file format
 - Episode markers from step 7 (stories completed, failed, blocked)
 - Cycle state from step 7 (updated decisions and statuses)
@@ -58,12 +58,12 @@ For each staged insight, apply the criteria from `references/agent-memory-schema
 - Vague observation without actionable guidance
 
 ### 3. Check for duplicates
-For each insight marked for promotion, check `skills/hive/agents/memories/{agent}/` for existing memories with similar descriptions. If a duplicate exists:
+For each insight marked for promotion, check `~/.claude/hive/memories/{agent}/` for existing memories with similar descriptions. If a duplicate exists:
 - If the new insight is more specific or corrects the old one: promote as an `override` type, note the superseded memory
 - If the new insight adds nothing: discard
 
 ### 4. Promote kept insights
-For each insight that passes evaluation, write a memory file to `skills/hive/agents/memories/{agent}/{slug}.md`:
+For each insight that passes evaluation, write a memory file to `~/.claude/hive/memories/{agent}/{slug}.md`:
 
 ```yaml
 ---
@@ -79,6 +79,35 @@ source_epic: {epic-id}
 ```
 
 The slug should be a kebab-case version of the summary (e.g., `api-rate-limit-retry-pattern`).
+
+### 4b. Promote team-level insights
+
+For insights that capture collective team patterns (handoff conventions, tooling quirks, process adjustments), promote to the team memory directory instead of the agent memory:
+
+Write to `state/team-memories/{team-name}/{slug}.md`:
+
+```yaml
+---
+name: {slug}
+description: {one-line summary}
+type: {convention | handoff-pattern | tooling | process}
+team: {team-name}
+timestamp: {ISO 8601}
+source_epic: {epic-id}
+---
+
+{Detail of the team-level pattern.}
+```
+
+**Decision rule:** If one agent could have learned this alone → agent memory at `~/.claude/hive/memories/`. If it required multiple agents coordinating → team memory at `state/team-memories/`.
+
+### 4c. Append to reference memories
+
+If a new insight matches an existing reference memory's `topic` (keyword match on `topic` field):
+- Append a new entry to the reference memory's `## Entries` section
+- Add any new external sources to `## Sources`
+- Update `last_updated` in the frontmatter
+- Do NOT create a duplicate standalone memory
 
 ### 5. Handle borderline cases
 For insights that do not clearly match keep or discard criteria:
@@ -130,7 +159,7 @@ Compile a final summary for the user:
 - [ ] All staged insights under `state/insights/` scanned
 - [ ] Each insight evaluated against keep/discard criteria from agent-memory-schema
 - [ ] Duplicate check performed against existing memories
-- [ ] Promoted insights written to `skills/hive/agents/memories/{agent}/` with correct format
+- [ ] Promoted insights written to `~/.claude/hive/memories/{agent}/` with correct format
 - [ ] Borderline cases presented to user for decision
 - [ ] Staging directories cleaned up
 - [ ] Session summary produced with all sections

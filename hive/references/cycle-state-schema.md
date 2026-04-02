@@ -13,8 +13,8 @@ Created at epic start, updated after each phase completes.
 ## Schema
 
 ```yaml
-epic_id: hive-phase7
-product_name: Shindig
+epic_id: my-epic
+product_name: my-app
 created: "2026-03-25T09:00:00Z"
 updated: "2026-03-25T14:30:00Z"
 
@@ -37,8 +37,8 @@ constraints:
   - "No new backend dependencies without architect review"
 
 naming:
-  product: Shindig
-  package: com.example.shindig
+  product: my-app
+  package: com.example.myapp
   api_prefix: /api/v1
 
 scope_boundaries:

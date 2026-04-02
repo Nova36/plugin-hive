@@ -118,7 +118,7 @@ Per-agent-pair trust scores that adapt based on validation accuracy.
 
 - **Range:** 0.0 to 1.0
 - **Initial:** 0.5 (neutral — new agent pairs start here)
-- **Storage:** `skills/hive/agents/memories/{agent}/trust-scores.yaml`
+- **Storage:** `~/.claude/hive/memories/{agent}/trust-scores.yaml`
 
 ### Update Rules
 
@@ -149,7 +149,7 @@ For task types not recently validated, trust decays toward neutral (0.5):
 ### Trust Score Storage
 
 ```yaml
-# skills/hive/agents/memories/developer/trust-scores.yaml
+# ~/.claude/hive/memories/developer/trust-scores.yaml
 pairs:
   - submitter: developer
     validator: reviewer

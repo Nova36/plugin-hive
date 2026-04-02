@@ -117,7 +117,7 @@ d. **Flag issues:** If a testId exists but the component may be invisible, flag 
    Impact: Maestro flow will timeout waiting for element.
    ```
 
-This check prevents the Shindig failure where weight(1f) in a scrollable Column hid ALL new components — testIds existed but Maestro couldn't find them.
+This check prevents a known failure where weight(1f) in a scrollable Column hid ALL new components — testIds existed but Maestro couldn't find them.
 
 ### 6. Produce test manifest
 

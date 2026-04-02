@@ -113,7 +113,7 @@ DESIGN CONTEXT SUMMARY:
 
 ## FAILURE MODES
 
-- **Not scanning existing wireframes:** Produces duplicate wireframes that don't match existing design language. This was the #1 failure in the Shindig run.
+- **Not scanning existing wireframes:** Produces duplicate wireframes that don't match existing design language. This is the #1 failure mode observed in real runs.
 - **Not reading design tokens:** Produces wireframes with arbitrary colors/spacing instead of project palette.
 - **Missing screen states:** Developer gets wireframes for happy path only — no loading, empty, or error states.
 - **Reading beyond story spec:** Scope drift — reading unrelated services, product briefs, or orchestrator files.

@@ -1,4 +1,6 @@
 state/
 agents/memories/
+.claude/settings.local.json
+.history/
 .DS_Store
 *.log

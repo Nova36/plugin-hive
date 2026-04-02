@@ -191,7 +191,29 @@ Create `hive.config.yaml` in the project root. This is Hive-specific config — 
 - Create `state/insights/` directory (staging area for agent insights)
 - Create `state/test-baseline/{project}/` if test swarm will be used
 - Create `state/test-artifacts/` directory (screenshots, logs, results from test swarm)
-- Create `skills/hive/agents/memories/` with subdirectories for each agent in the roster: developer, researcher, tester, reviewer, architect, analyst, ui-designer, team-lead, pair-programmer, peer-validator, test-architect, test-scout, test-worker, test-inspector, test-sentinel, orchestrator
+- Create `~/.claude/hive/memories/` with subdirectories for each agent in the roster: frontend-developer, backend-developer, researcher, technical-writer, tester, reviewer, architect, analyst, tpm, ui-designer, team-lead, pair-programmer, peer-validator, test-architect, test-scout, test-worker, test-inspector, test-sentinel, orchestrator
+- Create `state/team-memories/` directory (project-scoped team collective memories)
+- Create `state/teams/` directory (loadable team configs)
+- Run per-agent memory migration (idempotent — safe to run every kickoff):
+  - For each agent, check `skills/hive/agents/memories/{agent}/` for `.md` files
+  - Copy files that don't already exist at `~/.claude/hive/memories/{agent}/`
+  - Skip files that already exist at the system path (don't overwrite)
+  - Log: `Migrated: N files, Skipped: M files`
+  - See `references/agent-memory-schema.md` → "Migration from old path" for full procedure
+
+### Phase 5b: Generate Team Configs
+
+Based on the project discovery from phases 1-4, generate team config files:
+
+1. Identify project domains from directory structure (frontend dirs, backend dirs, test dirs, infra dirs)
+2. Match domains to roster agents (frontend dir → frontend-developer, backend dir → backend-developer, etc.)
+3. Generate domain restrictions based on actual directory paths discovered
+4. Set tech_stack from discovered technologies
+5. Write team config(s) to `state/teams/{team-name}.yaml`
+6. For large projects, generate multiple specialized teams (e.g., `api-team`, `mobile-team`)
+7. Present configs in the onboarding report for user review
+
+See `references/team-config-schema.md` for the full format.
 
 ### Phase 6: Present Onboarding Report
 
@@ -223,7 +245,7 @@ Create `hive.config.yaml` in the project root. This is Hive-specific config — 
 - state/project-profile.yaml — comprehensive project profile
 - hive.config.yaml — Hive workflow configuration
 - state/insights/ — insight staging area
-- skills/hive/agents/memories/ — agent memory storage (16 agent subdirectories)
+- ~/.claude/hive/memories/ — agent memory storage (16 agent subdirectories)
 
 ### Recommended Next Steps
 - Review the project profile for accuracy

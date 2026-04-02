@@ -23,7 +23,7 @@ Accumulated knowledge from past cycles in this project: decisions, quality feedb
 
 **Sources:**
 - **Cycle state history** — `state/cycle-state/*.yaml` files from past epics. Decisions, constraints, naming conventions, technology choices.
-- **Agent memories** — `skills/hive/agents/memories/{agent}/` files. Patterns, pitfalls, codebase understanding accumulated across sessions.
+- **Agent memories** — `~/.claude/hive/memories/{agent}/` files. Patterns, pitfalls, codebase understanding accumulated across sessions.
 - **Gate feedback** — past quality gate rejections and the reasons why (from status markers with `failed` status + associated insights).
 
 **Access:** Orchestrator pre-fetches relevant project knowledge during story ingestion and includes it in agent prompts. Agents can also query directly by reading memory files.
@@ -133,7 +133,7 @@ To find past decisions about a technology or pattern:
 
 To find relevant patterns or pitfalls:
 ```
-1. List memories for the relevant agent: ls skills/hive/agents/memories/{agent}/
+1. List memories for the relevant agent: ls ~/.claude/hive/memories/{agent}/
 2. Read each memory's description (frontmatter) for relevance
 3. Load full content of relevant memories
 ```

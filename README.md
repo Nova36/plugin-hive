@@ -12,11 +12,44 @@ Hive runs as a set of Claude Code skills. The orchestrator is always the main se
 
 | Command | Trigger | Purpose |
 |---------|---------|---------|
+| `/hive:kickoff` | "initialize", "onboard", "start new project" | Initialize Hive for a project (brownfield or greenfield) |
 | `/hive:standup` | "start the day", "daily ceremony" | Daily ceremony: standup → planning → execution |
-| `/hive:plan` | "plan this feature", "break into stories" | Decompose a requirement into an epic with stories |
+| `/hive:plan` | "plan this feature", "break into stories" | Multi-phase planning: design discussion → H/V planning → stories |
 | `/hive:execute` | "execute the epic", "run the workflow" | Execute stories through development phases |
 | `/hive:status` | "what's the status" | Check active workflow state |
 | `/hive:review` | "review this code", "review my changes" | Run structured code review |
+| `/hive:test` | "run tests", "test swarm" | Run the test swarm pipeline |
+
+---
+
+## Planning Process
+
+Planning scales with the complexity of the request:
+
+```
+Small:   research → brief → design discussion → feedback → stories
+Medium:  research → brief → design discussion → feedback → H scan → V slice plan → feedback → stories
+Large:   research → brief → design discussion → feedback → H scan → V slice plan → feedback → structured outline → sign-off → stories
+```
+
+### Planning Artifacts
+
+| Artifact | Skill | When | Size |
+|----------|-------|------|------|
+| **Design Discussion** | `skills/hive/skills/design-discussion/` | Always (all scopes) | ~200 lines |
+| **Horizontal Scan** | `skills/hive/skills/horizontal-plan/` | Medium + Large | ~200-400 lines |
+| **Vertical Slice Plan** | `skills/hive/skills/vertical-plan/` | Medium + Large | ~300-500 lines |
+| **Structured Outline** | `skills/hive/skills/structured-outline/` | Large only | ~1000 lines |
+
+### Horizontal + Vertical Planning
+
+**Horizontal planning** maps breadth — what does each architectural layer need overall? Produces a layer map with cross-layer dependencies.
+
+**Vertical planning** maps execution — minimum cross-stack slices that each produce a working, demo-able state. Every commit is a functional unit. Issues are caught when they arrive, not after five unknowns pile up.
+
+### Verification Strategy
+
+Every planning artifact includes an explicit verification section — tools, platforms, automated vs manual, and what's NOT being verified. The user can course-correct the verification approach before implementation begins.
 
 ---
 
@@ -32,208 +65,224 @@ Hive is designed for a daily restart model. Each day starts fresh with a 1M Opus
    │  Present: yesterday's work, blockers, human items, continuations
    │
 2. PLANNING
-   │  User short-lists today's work
-   │  Orchestrator runs compressed planning (analyst, architect, ui-designer if needed)
+   │  User provides requirement
+   │  Orchestrator runs multi-phase planning (researcher, writer, analyst,
+   │    architect, TPM, ui-designer as needed)
+   │  Design discussion → H/V planning (if medium+) → structured outline (if large)
+   │  User reviews and steers at each gate
    │  Agent-ready checklist validates stories
-   │  User approves plan
+   │  User approves final plan
    │
 3. EXECUTION
-   │  Orchestrator kicks off dev team(s)
-   │  One team at a time (sequential across epics)
+   │  Orchestrator loads team configs and kicks off dev team(s)
+   │  Teams execute vertical slices — each producing a working state
+   │  Per-story commits on feature branches
    │  Status markers track progress
-   │  Gate retry with feedback on failures
    │
-4. COMMIT
-   │  Commit all dev work — clean checkpoint before testing
-   │  Commit message references epic + stories completed
+4. REVIEW
+   │  Claude reviewer evaluates implementation (default gate)
+   │  Codex adversarial review (optional, configurable second-model perspective)
    │
 5. TEST HANDOFF → TESTING
-   │  Create cross-swarm handoff (stories, artifacts, cycle state)
-   │  Test swarm runs 8-task pipeline:
-   │  context → baseline → author tests → validate coverage
+   │  Test swarm runs pipeline: context → baseline → author → validate
    │  → execute (parallel platforms) → file bugs → report
-   │  High-severity bugs → escalate to human (task tracker)
-   │  Low-severity bugs → auto-route to dev queue
    │
 6. FIX LOOP
-   │  Dev team picks up auto-routed bugs
-   │  Fix → commit (separate commit per fix) → re-run affected tests
-   │  Repeat until all auto-routable bugs resolved
-   │
-   │  TERMINAL ISSUES: If a bug can't be fixed by dev (architectural flaw,
-   │  missing dependency, environment issue, needs human judgment):
-   │  → STOP fix loop for that story
-   │  → Mark story BLOCKED
-   │  → Push to task tracker with full context
-   │  → Notify user immediately (don't bury in report)
-   │  → Continue with remaining non-blocked work
+   │  Dev team picks up bugs via SendMessage
+   │  Fix → commit → re-run affected tests
+   │  Circuit breaker: max 3 attempts per bug
    │
 7. SESSION END
-   │  Evaluate staged insights → promote or discard
-   │  Update cycle state with day's decisions
-   │  Surface unresolved items for tomorrow's standup
-   │  Clean up insight staging area
+   │  Evaluate staged insights → promote to system memory or discard
+   │  Promote team-level insights to project team memory
+   │  Update cycle state, clean up staging
 ```
 
 ### Pipeline View
 
 ```
-Planning Swarm ──→ Dev Swarm ──→ Test Swarm
-  (analyst,          (researcher,     (scout, architect,
-   architect,         developer,       worker, inspector,
-   ui-designer)       tester,          sentinel)
-                      reviewer)
+Planning Team ──→ Dev Team ──→ Test Swarm
+  (analyst,         (researcher,     (scout, architect,
+   architect,        writer,          worker, inspector,
+   tpm,              frontend-dev,    sentinel)
+   ui-designer)      backend-dev,
+                     tester,
+                     reviewer)
        │                  │                  │
        ▼                  ▼                  ▼
   Stories with       Implemented,       Test results,
-  wireframes         tested code        bug tickets,
-  + cycle state      + cycle state      session report
+  H/V plans,         tested code,       bug tickets,
+  wireframes         per-story commits  session report
 ```
 
 ---
 
-## Agent Roster (16 Personas)
+## Agent Roster (20 Personas)
 
 Personas are a bench — pull who you need. Having a persona doesn't mean you must use it.
 
-### Model Tier Routing
+All agents have YAML frontmatter with both official Claude Code fields (`name`, `description`, `model`, `color`, `tools`) and Hive-specific fields (`knowledge`, `skills`, `domain`, `required_tools`). See `references/agent-config-schema.md`.
 
-Match the model to the job — not every agent needs Opus.
+### Model Tier Routing
 
 | Tier | Model | Agents | Cost |
 |------|-------|--------|------|
-| **Opus** | claude-opus-4-6 | orchestrator, team-lead, architect, analyst | Highest — complex reasoning |
-| **Sonnet** | claude-sonnet-4-6 | researcher, developer, tester, reviewer, pair-programmer, peer-validator, ui-designer, test-scout, test-architect, test-inspector, test-sentinel | Medium — analytical/implementation |
+| **Opus** | claude-opus-4-6 | orchestrator, team-lead, architect, analyst, tpm | Highest — complex reasoning |
+| **Sonnet** | claude-sonnet-4-6 | researcher, technical-writer, frontend-developer, backend-developer, developer, tester, reviewer, pair-programmer, peer-validator, ui-designer, test-scout, test-architect, test-inspector, test-sentinel | Medium — analytical/implementation |
 | **Haiku** | claude-haiku-4-5 | test-worker | Lowest — fast mechanical execution |
 
-Configure in `hive.config.yaml`. Override per-agent with `model_overrides` for complex projects.
+Configure in `hive.config.yaml`. Override per-agent with `model_overrides`.
 
 ### Planning Agents
-| Agent | File | Role | Tier |
-|-------|------|------|------|
-| **Analyst** | `agents/analyst.md` | Requirements decomposition, gap analysis, prioritization, success metrics | Opus |
-| **Architect** | `agents/architect.md` | System design, technology evaluation, API design, scalability | Opus |
-| **UI Designer** | `agents/ui-designer.md` | Wireframes (Frame0), design briefs, marketing materials | Sonnet |
+| Agent | Role | Tier |
+|-------|------|------|
+| **Analyst** | Requirements decomposition, gap analysis, prioritization | Opus |
+| **Architect** | System design, technology evaluation, API design | Opus |
+| **TPM** | Cross-system sequencing, horizontal/vertical planning, incremental delivery | Opus |
+| **UI Designer** | Wireframes (Frame0), design briefs, marketing materials | Sonnet |
 
 ### Development Agents
-| Agent | File | Role |
-|-------|------|------|
-| **Researcher** | `agents/researcher.md` | Codebase exploration, pattern analysis, research briefs, web research |
-| **Developer** | `agents/developer.md` | Implementation — translates specs into code |
-| **Tester** | `agents/tester.md` | TDD (tests first) or Classic (tests after) modes |
-| **Reviewer** | `agents/reviewer.md` | Code review — correctness, security, conventions, performance |
-| **Pair Programmer** | `agents/pair-programmer.md` | Sidecar to developer — challenges assumptions, flags risks |
+| Agent | Role |
+|-------|------|
+| **Researcher** | Raw data gathering — codebase exploration, web research. Does NOT write briefs. |
+| **Technical Writer** | Transforms raw data into documents (briefs, design discussions, outlines). Short-lived. |
+| **Frontend Developer** | UI components, screens, styles, client-side logic |
+| **Backend Developer** | APIs, services, database logic, server-side code |
+| **Developer** | General-purpose (legacy — use frontend/backend for new work) |
+| **Tester** | TDD or Classic test authoring and execution |
+| **Reviewer** | Code review — correctness, security, conventions, domain compliance |
+| **Pair Programmer** | Sidecar — challenges assumptions, surfaces alternatives. Does not write code. |
 
 ### Test Swarm Agents
-| Agent | File | Role |
-|-------|------|------|
-| **Test Scout** | `agents/test-scout.md` | Context gathering, baseline management, discovery passes |
-| **Test Architect** | `agents/test-architect.md` | Test authoring with framework detection |
-| **Test Worker** | `agents/test-worker.md` | Test execution across platforms in parallel |
-| **Test Inspector** | `agents/test-inspector.md` | Coverage validation against requirements |
-| **Test Sentinel** | `agents/test-sentinel.md` | Bug triage, severity classification, adaptive auto-routing |
+| Agent | Role |
+|-------|------|
+| **Test Scout** | Context gathering, baseline management |
+| **Test Architect** | Test design and authoring with framework detection |
+| **Test Worker** | Test execution across platforms (Haiku tier — fast) |
+| **Test Inspector** | Coverage validation against requirements |
+| **Test Sentinel** | Bug triage, severity routing, adaptive auto-approval |
 
 ### Coordination Agents
-| Agent | File | Role |
-|-------|------|------|
-| **Orchestrator** | `agents/orchestrator.md` | Main session guidance — coordinates across epics and teams |
-| **Team Lead** | `agents/team-lead.md` | Per-team coordinator — staffs team, manages story execution |
-| **Peer Validator** | `agents/peer-validator.md` | Cross-team validation — consistency, convention enforcement |
+| Agent | Role |
+|-------|------|
+| **Orchestrator** | Main session — coordinates across epics and teams |
+| **Team Lead** | Per-team coordinator — staffs teams, manages story execution, routes developer roles |
+| **Peer Validator** | Cross-team validation — consistency, conventions, integration risk |
 
 ---
 
 ## Hierarchy
 
 ```
-Orchestrator (main session — you)
+Orchestrator (main session)
   │
   ├── Evaluates: does this need a team?
   │   No  → orchestrator handles it solo
-  │   Yes → assigns to team lead
+  │   Yes → loads team config, assigns to team lead
   │
   └── Team Lead (per-story)
         │
-        ├── Evaluates: who do I need from the bench?
-        │   Simple task → team lead handles solo
-        │   Complex task → pulls agents
+        ├── Routes developer roles (frontend vs backend vs both)
+        ├── Loads agent memories + team memories
+        ├── Validates domain compliance after each step
         │
-        ├── Frontend Developer
-        ├── Backend Developer
+        ├── Frontend Developer (UI work)
+        ├── Backend Developer (API/server work)
         ├── Tester
+        ├── Reviewer
         └── Pair Programmer (optional sidecar)
 ```
 
-**Key rule:** The orchestrator never joins a team it's coordinating. Team leads never join the orchestrator's level. Information flows up through reports.
+Teams use `TeamCreate` for spawning (separate tmux panes, `SendMessage` for communication).
 
 ---
 
-## Workflows (6)
+## Workflows
 
 ### Development Workflows
 | Workflow | File | Phase Order |
 |----------|------|-------------|
-| **Classic** | `workflows/development.classic.workflow.yaml` | research → implement → test → review → optimize → integrate |
-| **TDD** | `workflows/development.tdd.workflow.yaml` | research → test-spec → implement → review → optimize → integrate |
-| **BDD** | `workflows/development.bdd.workflow.yaml` | research → behavior-spec → implement → test → review → optimize → integrate |
+| **Classic** | `development.classic.workflow.yaml` | preflight → research → write-brief → implement → test → review → (codex-review) → optimize → integrate |
+| **TDD** | `development.tdd.workflow.yaml` | research → write-brief → test-spec → implement → review → optimize → integrate |
+| **BDD** | `development.bdd.workflow.yaml` | research → write-brief → behavior-spec → implement → test → review → optimize → integrate |
 
 ### Other Workflows
-| Workflow | File | Purpose |
-|----------|------|---------|
-| **Code Review** | `workflows/code-review.workflow.yaml` | analyze → review → summarize |
-| **Test Swarm** | `workflows/test-swarm.workflow.yaml` | 8-task pipeline: context → baseline → author → validate → execute → bugs → report |
-| **Daily Ceremony** | `workflows/daily-ceremony.workflow.yaml` | standup → planning → execution |
+| Workflow | Purpose |
+|----------|---------|
+| **Code Review** | analyze → review → summarize |
+| **Test Swarm** | 8-task pipeline: context → baseline → author → validate → execute → bugs → report |
+| **Daily Ceremony** | standup → planning → execution |
 
-Select development methodology: `/hive:execute {epic} --methodology tdd`
+### Codex Integration (Optional)
 
----
-
-## Swarm Types
-
-### Planning Swarm
-**When:** `/hive:plan` or during daily ceremony planning phase
-**Agents:** analyst, architect, ui-designer (if UI work detected)
-**Output:** Epic with dependency-tracked stories, wireframes embedded in story specs
-**Key feature:** UI step detection — auto-detects stories needing wireframes
-
-### Development Swarm
-**When:** `/hive:execute {epic}`
-**Agents:** researcher, developer, tester, reviewer, pair-programmer (optional)
-**Output:** Implemented, tested, reviewed code
-**Key feature:** Gate retry with feedback — failures get injected back for retry
-
-### Test Swarm
-**When:** After dev swarm completes (cross-swarm handoff) or manual trigger
-**Agents:** test-scout, test-architect, test-worker, test-inspector, test-sentinel
-**Output:** Test results, coverage report, bug tickets, session report
-**Key feature:** Framework detection — auto-detects Maestro, Playwright, pytest, etc.
-
-### Review Swarm
-**When:** `/hive:review` or after execution
-**Agents:** researcher (scope analysis), reviewer (findings)
-**Output:** Structured review with verdict (passed / needs_optimization / needs_revision)
+When enabled (`hive.config.yaml` → `external_models.codex.enabled: true`), a Codex adversarial review runs after the Claude review step. Provides a second-model perspective. Requires `npm install -g @openai/codex` and `codex login`.
 
 ---
 
-## Quality System
+## Memory System (Two-Tier)
 
-### Three-Tier Gates
-| Tier | Score | Action |
-|------|-------|--------|
-| Auto-pass | ≥ 0.9 | Proceed immediately |
-| Peer review | 0.3–0.9 | Validation handshake (submit → validate → verify) |
-| Human escalation | < 0.3 | Push to task tracker, halt |
+### System-Level: Agent Memories (cross-project)
 
-### Trust Scoring
-- Per-agent-pair trust scores (0.0–1.0)
-- High trust (≥0.8) → skip full validation
-- Low trust (≤0.5) → enforce full handshake
-- Trust decays over time if not recently validated
+```
+~/.claude/hive/memories/{agent-name}/{slug}.md
+```
 
-### Gate Retry
-When gates fail, findings are fed back into the next attempt. Configurable per step in workflow YAML. Default: 2 attempts before escalation.
+Agent memories span projects. A backend developer working on Go Project A and Python Project B accumulates cross-project expertise. Memory types: `pattern`, `pitfall`, `override`, `codebase`, `reference`.
 
-### Gate Policies
-YAML-defined quality rules per workflow at `gate-policies/{workflow}.yaml`. Types: structural, consistency, coverage, custom.
+**Reference memories** are a special type — curated knowledge lists that accumulate entries over time (e.g., "Go Concurrency Patterns" with entries from multiple projects and links to external docs).
+
+### Project-Level: Team Memories (project-scoped)
+
+```
+state/team-memories/{team-name}/{slug}.md
+```
+
+Team memories capture collective patterns specific to THIS codebase. They don't travel to other projects. Memory types: `convention`, `handoff-pattern`, `tooling`, `process`.
+
+### Memory Lifecycle
+
+```
+Agent executes step
+  → encounters something non-obvious
+  → writes insight to state/insights/ staging
+  → session ends
+  → orchestrator evaluates: promote or discard?
+  → agent insights → ~/.claude/hive/memories/{agent}/
+  → team insights → state/team-memories/{team}/
+  → reference insights → append to existing reference memory
+  → next session: memories loaded at spawn time
+```
+
+### Memory Loading
+
+Mandatory at every spawn point:
+1. Orchestrator loads own memories at session start
+2. Agent-spawn skill loads target agent's memories before spawning
+3. Team lead loads team memories + agent memories before staffing
+
+---
+
+## Team Configs
+
+```
+state/teams/{team-name}.yaml
+```
+
+Team configs give teams permanence — generated during kickoff, editable by users, loadable by the orchestrator. Define team name, lead, members with roles, domain restrictions, methodology, and project context.
+
+See `references/team-config-schema.md` for full format.
+
+---
+
+## Domain Access Control
+
+Agents have domain restrictions controlling which files they can write. Declared in agent frontmatter (defaults) and overridden by team configs (project-specific).
+
+- Domain restricts WRITE, not READ — agents need broad read access for context
+- Enforcement: team lead validates post-step, reviewer checks during review
+- Precedence: team config > agent frontmatter > default (allow all)
+
+See `references/domain-access-control.md` for full protocol.
 
 ---
 
@@ -243,65 +292,27 @@ YAML-defined quality rules per workflow at `gate-policies/{workflow}.yaml`. Type
 |------|-------|---------|
 | Epic definitions | `state/epics/{epic-id}/epic.yaml` | Epic index with story list |
 | Story specs | `state/epics/{epic-id}/stories/{story-id}.yaml` | Self-contained story definitions |
-| Status markers | `state/episodes/{epic-id}/{story-id}/{step-id}.yaml` | Lightweight progress tracking (4 fields) |
+| Episode records | `state/episodes/{epic-id}/{story-id}/{step-id}.yaml` | Progress tracking |
 | Cycle state | `state/cycle-state/{epic-id}.yaml` | Accumulated decisions across phases |
 | Staged insights | `state/insights/{epic-id}/{story-id}/` | Insights pending session-end evaluation |
-| Agent memories | `skills/hive/agents/memories/{agent}/` | Promoted insights that persist across sessions |
+| Agent memories | `~/.claude/hive/memories/{agent}/` | System-level, cross-project |
+| Team memories | `state/team-memories/{team}/` | Project-level team knowledge |
+| Team configs | `state/teams/{team-name}.yaml` | Loadable team compositions |
 | Test baselines | `state/test-baseline/{project}/` | Project test knowledge |
-| Handoffs | `state/handoffs/{handoff-id}.yaml` | Cross-swarm artifact transfers |
-
----
-
-## Agent Memory System
-
-Agents accumulate memories across sessions — patterns, pitfalls, codebase understanding.
-
-### Flow
-```
-Agent executes step
-  → encounters something non-obvious
-  → writes insight to state/insights/ staging
-  → session ends
-  → orchestrator evaluates: promote or discard?
-  → promoted insights → agents/memories/{agent}/
-  → next session: team lead loads relevant memories for assigned agents
-```
-
-### What Gets Kept
-- Repeatable patterns ("do this in similar contexts")
-- Pitfall warnings ("don't do X because Y")
-- Override insights (supersede existing memory)
-- Codebase-specific understanding
-
-### What Gets Discarded
-- One-off execution details
-- Ephemeral context
-- Already captured in existing memories
-- Derivable from reading current code
-
----
-
-## Cross-Swarm Handoffs
-
-Structured artifact transfer between swarms:
-
-```
-Planning Swarm → [handoff] → Dev Swarm → [handoff] → Test Swarm
-```
-
-Handoff includes: story specs, implementation artifacts, cycle state, constraints, naming conventions. Status lifecycle: pending → consumed → expired.
 
 ---
 
 ## Configuration
 
-All settings in `skills/hive/hive.config.yaml`:
-- Quality gate thresholds
-- Trust scoring parameters
+All settings in `hive/hive.config.yaml`:
+- Quality gate thresholds and trust scoring
 - Token budgets and context window limits
 - Task tracking adapter (Linear, GitHub, Jira)
-- Default methodology
-- Retry attempts
+- Model tier routing and per-agent overrides
+- Circuit breakers (timeouts, retry limits)
+- External model integrations (Codex)
+- Example codebases (user's own projects for agents to learn from)
+- Execution defaults (methodology, parallel teams)
 
 ---
 
@@ -309,37 +320,17 @@ All settings in `skills/hive/hive.config.yaml`:
 
 | Doc | File | What it covers |
 |-----|------|---------------|
-| Workflow Schema | `references/workflow-schema.md` | YAML workflow format, step fields, retry config |
-| Methodology Routing | `references/methodology-routing.md` | Classic/TDD/BDD/FDD phase ordering |
-| Status Markers | `references/episode-schema.md` | Lightweight progress tracking format |
-| Agent Memory | `references/agent-memory-schema.md` | Memory types, capture, evaluation, loading |
-| Cycle State | `references/cycle-state-schema.md` | Decision accumulation across phases |
-| Quality Gates | `references/quality-gates.md` | Three-tier gates, trust scoring, validation handshake, control plane |
+| Agent Config Schema | `references/agent-config-schema.md` | Frontmatter format (official + Hive fields) |
+| Agent Memory Schema | `references/agent-memory-schema.md` | Two-tier storage, memory types, loading, migration |
+| Team Config Schema | `references/team-config-schema.md` | Loadable team compositions and lifecycle |
+| Domain Access Control | `references/domain-access-control.md` | Per-agent write restrictions and enforcement |
+| Workflow Schema | `references/workflow-schema.md` | YAML workflow format, step fields |
+| Methodology Routing | `references/methodology-routing.md` | Classic/TDD/BDD phase ordering |
+| Episode Schema | `references/episode-schema.md` | Status marker format |
+| Cycle State Schema | `references/cycle-state-schema.md` | Decision accumulation across phases |
+| Quality Gates | `references/quality-gates.md` | Three-tier gates, trust scoring |
 | Knowledge Layer | `references/knowledge-layer.md` | External docs, project knowledge, capability catalog |
-| Agent-Ready Checklist | `references/agent-ready-checklist.md` | 8-point story validation before execution |
-| Wireframe Protocol | `references/wireframe-protocol.md` | UI touchpoints during planning |
-| Task Tracking | `references/task-tracking-adapter.md` | Human intervention queue (Linear/GitHub/Jira) |
-| Token Management | `references/token-management.md` | Budgets, context window, fresh instance spawning |
-| Sandboxing | `references/sandboxing-patterns.md` | Git worktrees for parallel agent isolation |
-| Test Swarm | `references/test-swarm-architecture.md` | 8-task test pipeline, framework detection, bug triage |
-| Configuration | `references/configuration.md` | All config settings and defaults |
-| Agent Teams | `references/agent-teams-guide.md` | Claude Code agent teams mechanics |
-| Cross-Swarm Handoff | `references/cross-swarm-handoff.md` | Artifact transfer between swarms |
-
----
-
-## Team Evaluation — When to Spawn vs Solo
-
-**Solo (no team) when:**
-- Editing config, markdown, or YAML
-- All work is the same skill type
-- One agent finishes faster than coordination overhead
-- No distinct frontend/backend/test split
-
-**Spawn a team when:**
-- Genuinely different skills needed (frontend + backend + tests)
-- Substantial parallel implementation work
-- TDD methodology (separate tester and developer)
-- Story explicitly needs specialized agents
-
-**The test:** If you're about to spawn 6 agents to edit 5 files, stop. Just do it.
+| Agent-Ready Checklist | `references/agent-ready-checklist.md` | 9-point story validation |
+| Insight Capture | `references/insight-capture.md` | When and how agents capture insights |
+| Cross-Cutting Concerns | `references/cross-cutting-concerns.md` | Per-project concern evaluation |
+| Vertical Planning | `references/vertical-planning.md` | H/V planning methodology |

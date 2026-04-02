@@ -33,16 +33,18 @@ Hive is designed for a daily restart model. Each day starts fresh with a 1M Opus
    │  Present: yesterday's work, blockers, human items, continuations
    │
 2. PLANNING
-   │  User short-lists today's work
-   │  Orchestrator runs compressed planning (analyst, architect, ui-designer if needed)
+   │  User provides requirement
+   │  Multi-phase planning: design discussion → H/V planning (medium+) → outline (large)
+   │  Planning team: researcher, writer, analyst, architect, TPM, ui-designer
+   │  User reviews and steers at each gate
    │  Agent-ready checklist validates stories
-   │  User approves plan
+   │  User approves final plan
    │
 3. EXECUTION
-   │  Orchestrator kicks off dev team(s)
-   │  One team at a time (sequential across epics)
+   │  Orchestrator loads team configs, kicks off dev team(s)
+   │  Teams execute vertical slices — each producing a working state
+   │  Per-story commits on feature branches
    │  Status markers track progress
-   │  Gate retry with feedback on failures
    │
 4. COMMIT
    │  Commit all dev work — clean checkpoint before testing
@@ -89,21 +91,23 @@ Hive is designed for a daily restart model. Each day starts fresh with a 1M Opus
 ### Pipeline View
 
 ```
-Planning Swarm ──→ Dev Swarm ──→ Test Swarm
+Planning Team ──→ Dev Team ──→ Test Swarm
   (analyst,          (researcher,     (scout, architect,
-   architect,         developer,       worker, inspector,
-   ui-designer)       tester,          sentinel)
+   architect,         writer,          worker, inspector,
+   tpm,               frontend-dev,    sentinel)
+   ui-designer)       backend-dev,
+                      tester,
                       reviewer)
        │                  │                  │
        ▼                  ▼                  ▼
   Stories with       Implemented,       Test results,
-  wireframes         tested code        bug tickets,
-  + cycle state      + cycle state      session report
+  H/V plans,         tested code,       bug tickets,
+  wireframes         per-story commits  session report
 ```
 
 ---
 
-## Agent Roster (16 Personas)
+## Agent Roster (20 Personas)
 
 Personas are a bench — pull who you need. Having a persona doesn't mean you must use it.
 
@@ -113,27 +117,31 @@ Match the model to the job — not every agent needs Opus.
 
 | Tier | Model | Agents | Cost |
 |------|-------|--------|------|
-| **Opus** | claude-opus-4-6 | orchestrator, team-lead, architect, analyst | Highest — complex reasoning |
-| **Sonnet** | claude-sonnet-4-6 | researcher, developer, tester, reviewer, pair-programmer, peer-validator, ui-designer, test-scout, test-architect, test-inspector, test-sentinel | Medium — analytical/implementation |
+| **Opus** | claude-opus-4-6 | orchestrator, team-lead, architect, analyst, tpm | Highest — complex reasoning |
+| **Sonnet** | claude-sonnet-4-6 | researcher, technical-writer, frontend-developer, backend-developer, developer, tester, reviewer, pair-programmer, peer-validator, ui-designer, test-scout, test-architect, test-inspector, test-sentinel | Medium — analytical/implementation |
 | **Haiku** | claude-haiku-4-5 | test-worker | Lowest — fast mechanical execution |
 
 Configure in `hive.config.yaml`. Override per-agent with `model_overrides` for complex projects.
 
 ### Planning Agents
-| Agent | File | Role | Tier |
-|-------|------|------|------|
-| **Analyst** | `agents/analyst.md` | Requirements decomposition, gap analysis, prioritization, success metrics | Opus |
-| **Architect** | `agents/architect.md` | System design, technology evaluation, API design, scalability | Opus |
-| **UI Designer** | `agents/ui-designer.md` | Wireframes (Frame0), design briefs, marketing materials | Sonnet |
+| Agent | Role | Tier |
+|-------|------|------|
+| **Analyst** | Requirements decomposition, gap analysis, prioritization | Opus |
+| **Architect** | System design, technology evaluation, API design | Opus |
+| **TPM** | Cross-system sequencing, horizontal/vertical planning, incremental delivery | Opus |
+| **UI Designer** | Wireframes (Frame0), design briefs, marketing materials | Sonnet |
 
 ### Development Agents
-| Agent | File | Role |
-|-------|------|------|
-| **Researcher** | `agents/researcher.md` | Codebase exploration, pattern analysis, research briefs, web research |
-| **Developer** | `agents/developer.md` | Implementation — translates specs into code |
-| **Tester** | `agents/tester.md` | TDD (tests first) or Classic (tests after) modes |
-| **Reviewer** | `agents/reviewer.md` | Code review — correctness, security, conventions, performance |
-| **Pair Programmer** | `agents/pair-programmer.md` | Sidecar to developer — challenges assumptions, flags risks |
+| Agent | Role |
+|-------|------|
+| **Researcher** | Raw data gathering — codebase exploration, web research. Does NOT write briefs. |
+| **Technical Writer** | Transforms raw data into documents (briefs, design discussions, outlines). Short-lived. |
+| **Frontend Developer** | UI components, screens, styles, client-side logic |
+| **Backend Developer** | APIs, services, database logic, server-side code |
+| **Developer** | General-purpose (legacy — use frontend/backend for new work) |
+| **Tester** | TDD or Classic test authoring and execution |
+| **Reviewer** | Code review — correctness, security, conventions, domain compliance |
+| **Pair Programmer** | Sidecar — challenges assumptions, surfaces alternatives. Does not write code. |
 
 ### Test Swarm Agents
 | Agent | File | Role |
@@ -145,11 +153,11 @@ Configure in `hive.config.yaml`. Override per-agent with `model_overrides` for c
 | **Test Sentinel** | `agents/test-sentinel.md` | Bug triage, severity classification, adaptive auto-routing |
 
 ### Coordination Agents
-| Agent | File | Role |
-|-------|------|------|
-| **Orchestrator** | `agents/orchestrator.md` | Main session guidance — coordinates across epics and teams |
-| **Team Lead** | `agents/team-lead.md` | Per-team coordinator — staffs team, manages story execution |
-| **Peer Validator** | `agents/peer-validator.md` | Cross-team validation — consistency, convention enforcement |
+| Agent | Role |
+|-------|------|
+| **Orchestrator** | Main session — coordinates across epics and teams |
+| **Team Lead** | Per-team coordinator — staffs teams, routes developer roles, validates domains |
+| **Peer Validator** | Cross-team validation — consistency, conventions, integration risk |
 
 ---
 
@@ -183,9 +191,9 @@ Orchestrator (main session — you)
 ### Development Workflows
 | Workflow | File | Phase Order |
 |----------|------|-------------|
-| **Classic** | `workflows/development.classic.workflow.yaml` | research → implement → test → review → optimize → integrate |
-| **TDD** | `workflows/development.tdd.workflow.yaml` | research → test-spec → implement → review → optimize → integrate |
-| **BDD** | `workflows/development.bdd.workflow.yaml` | research → behavior-spec → implement → test → review → optimize → integrate |
+| **Classic** | `workflows/development.classic.workflow.yaml` | preflight → research → write-brief → implement → test → review → (codex-review) → optimize → integrate |
+| **TDD** | `workflows/development.tdd.workflow.yaml` | research → write-brief → test-spec → implement → review → optimize → integrate |
+| **BDD** | `workflows/development.bdd.workflow.yaml` | research → write-brief → behavior-spec → implement → test → review → optimize → integrate |
 
 ### Other Workflows
 | Workflow | File | Purpose |
@@ -200,17 +208,17 @@ Select development methodology: `/hive:execute {epic} --methodology tdd`
 
 ## Swarm Types
 
-### Planning Swarm
+### Planning Team
 **When:** `/hive:plan` or during daily ceremony planning phase
-**Agents:** analyst, architect, ui-designer (if UI work detected)
-**Output:** Epic with dependency-tracked stories, wireframes embedded in story specs
-**Key feature:** UI step detection — auto-detects stories needing wireframes
+**Agents:** researcher, technical-writer, analyst, architect, tpm, ui-designer (if UI work detected)
+**Output:** Design discussion, H/V plans (medium+), structured outline (large), epic with stories
+**Key features:** Multi-phase planning (small/medium/large), horizontal+vertical slicing, verification strategy, UI step detection
 
-### Development Swarm
+### Development Team
 **When:** `/hive:execute {epic}`
-**Agents:** researcher, developer, tester, reviewer, pair-programmer (optional)
-**Output:** Implemented, tested, reviewed code
-**Key feature:** Gate retry with feedback — failures get injected back for retry
+**Agents:** researcher, technical-writer, frontend-developer, backend-developer, tester, reviewer, pair-programmer (optional)
+**Output:** Implemented, tested, reviewed code with per-story commits
+**Key features:** Developer role routing (frontend/backend), domain validation, optional Codex adversarial review
 
 ### Test Swarm
 **When:** After dev swarm completes (cross-swarm handoff) or manual trigger
@@ -282,10 +290,12 @@ YAML-defined quality rules per workflow at `gate-policies/{workflow}.yaml`. Type
 |------|-------|---------|
 | Epic definitions | `state/epics/{epic-id}/epic.yaml` | Epic index with story list |
 | Story specs | `state/epics/{epic-id}/stories/{story-id}.yaml` | Self-contained story definitions |
-| Status markers | `state/episodes/{epic-id}/{story-id}/{step-id}.yaml` | Lightweight progress tracking (4 fields) |
+| Episode records | `state/episodes/{epic-id}/{story-id}/{step-id}.yaml` | Progress tracking |
 | Cycle state | `state/cycle-state/{epic-id}.yaml` | Accumulated decisions across phases |
 | Staged insights | `state/insights/{epic-id}/{story-id}/` | Insights pending session-end evaluation |
-| Agent memories | `skills/hive/agents/memories/{agent}/` | Promoted insights that persist across sessions |
+| Agent memories | `~/.claude/hive/memories/{agent}/` | System-level, cross-project |
+| Team memories | `state/team-memories/{team}/` | Project-level team knowledge |
+| Team configs | `state/teams/{team-name}.yaml` | Loadable team compositions |
 | Test baselines | `state/test-baseline/{project}/` | Project test knowledge |
 | Handoffs | `state/handoffs/{handoff-id}.yaml` | Cross-swarm artifact transfers |
 
@@ -295,6 +305,19 @@ YAML-defined quality rules per workflow at `gate-policies/{workflow}.yaml`. Type
 
 Agents accumulate memories across sessions — patterns, pitfalls, codebase understanding.
 
+### Two-Tier Storage
+
+**System-level** (`~/.claude/hive/memories/{agent}/`): Agent memories span projects — cross-project expertise that builds over time.
+
+**Project-level** (`state/team-memories/{team}/`): Team memories are scoped to the current project — collective patterns that don't travel.
+
+### Memory Types
+- `pattern` — repeatable approach that worked
+- `pitfall` — lesson learned, avoid this
+- `override` — supersedes an existing memory
+- `codebase` — project-specific understanding
+- `reference` — curated knowledge list with appendable entries and external docs
+
 ### Flow
 ```
 Agent executes step
@@ -302,15 +325,11 @@ Agent executes step
   → writes insight to state/insights/ staging
   → session ends
   → orchestrator evaluates: promote or discard?
-  → promoted insights → agents/memories/{agent}/
-  → next session: team lead loads relevant memories for assigned agents
+  → agent insights → ~/.claude/hive/memories/{agent}/
+  → team insights → state/team-memories/{team}/
+  → reference insights → append to existing reference memory
+  → next session: memories loaded at spawn time
 ```
-
-### What Gets Kept
-- Repeatable patterns ("do this in similar contexts")
-- Pitfall warnings ("don't do X because Y")
-- Override insights (supersede existing memory)
-- Codebase-specific understanding
 
 ### What Gets Discarded
 - One-off execution details

@@ -3,17 +3,45 @@ description: TDD development workflow — tests first, then implement to make th
 version: "1.0.0"
 methodology: tdd
 
+# AGENT ROUTING:
+# Steps reference generic agent roles (e.g., "developer"). The team lead resolves
+# these to specific roster agents at runtime based on the story's scope:
+#   developer → frontend-developer (UI/component work) or backend-developer (API/server work)
+
 steps:
   - id: research
     agent: researcher
     step_file: workflows/steps/development-classic/step-02-research.md
     task: >
-      Read the story spec and explore the codebase. Identify affected files,
-      existing patterns, potential risks, and any context needed for implementation.
-      Produce a research brief covering: file locations, relevant patterns, integration
-      points, test infrastructure, and recommended approach.
+      Read the story spec and explore the codebase. Gather raw findings:
+      affected files, existing patterns, architectural constraints, risks,
+      reusable utilities, test infrastructure, and external references.
+      Deliver structured raw findings — do NOT write a formatted brief.
     depends_on: []
     inputs:
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: research_findings
+        type: string
+    optional: false
+    timeout_ms: 300000
+
+  - id: write-brief
+    agent: technical-writer
+    task: >
+      Receive raw research findings and produce a formatted research brief.
+      Use the research-brief skill if available. The brief should be
+      actionable for the developer and tester: where to start, what to reuse,
+      what test infrastructure exists, and what to watch out for.
+    depends_on:
+      - research
+    inputs:
+      - name: research_findings
+        source: step_output
+        step_id: research
+        output_name: research_findings
       - name: story_spec
         source: context
         context_key: story_spec
@@ -21,7 +49,7 @@ steps:
       - name: research_brief
         type: string
     optional: false
-    timeout_ms: 300000
+    timeout_ms: 180000
 
   - id: test-spec
     agent: tester
@@ -33,11 +61,11 @@ steps:
       Tests MUST fail when run (there is no implementation yet). Produce a test
       manifest listing each test with its target acceptance criterion.
     depends_on:
-      - research
+      - write-brief
     inputs:
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
       - name: story_spec
         source: context
@@ -67,7 +95,7 @@ steps:
         output_name: test_files
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
       - name: story_spec
         source: context
@@ -99,7 +127,7 @@ steps:
         output_name: test_files
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
       - name: story_spec
         source: context

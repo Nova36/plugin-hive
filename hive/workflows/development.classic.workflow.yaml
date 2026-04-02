@@ -10,6 +10,19 @@ methodology: classic
 # 4. Platform verification required for cross-platform stories
 # 5. Each step MUST run as a SEPARATE agent instance — no self-review, no shared context
 #    between researcher and developer (developer should not "remember" research shortcuts)
+#
+# AGENT ROUTING:
+# Steps reference generic agent roles (e.g., "developer"). The team lead resolves
+# these to specific roster agents at runtime based on the story's scope:
+#   developer → frontend-developer (UI/component work) or backend-developer (API/server work)
+# The generic "developer" agent is kept for backward compatibility.
+#
+# MULTI-DOMAIN STORIES:
+# When a story spans both frontend and backend, the team lead executes the
+# implement step as two sequential sub-steps (backend first, then frontend).
+# Both agents' changes are merged into a single "implementation" output that
+# downstream steps (test, review) consume. The team lead tracks which agent
+# modified which files for domain validation.
 
 steps:
   - id: preflight
@@ -40,10 +53,10 @@ steps:
     agent: researcher
     step_file: workflows/steps/development-classic/step-02-research.md
     task: >
-      Read the story spec and explore the codebase. Identify affected files,
-      existing patterns, potential risks, and any context needed for implementation.
-      Produce a research brief covering: file locations, relevant patterns, integration
-      points, and recommended approach.
+      Read the story spec and explore the codebase. Gather raw findings:
+      affected files, existing patterns, architectural constraints, risks,
+      reusable utilities, and external references. Deliver structured raw
+      findings — do NOT write a formatted brief.
 
       SKIP THIS STEP for low-complexity stories. The orchestrator decides based on
       the story's complexity field. Low = skip research, read files directly.
@@ -54,11 +67,38 @@ steps:
         source: context
         context_key: story_spec
     outputs:
-      - name: research_brief
+      - name: research_findings
         type: string
     optional: true
     skip_when: "story.complexity == 'low'"
     timeout_ms: 300000
+
+  - id: write-brief
+    agent: technical-writer
+    task: >
+      Receive raw research findings and produce a formatted research brief.
+      Use the research-brief skill if available. The brief should be
+      actionable for the developer: where to start, what to reuse, what
+      to watch out for.
+
+      This agent is short-lived: write the document, record any insights,
+      then shut down.
+    depends_on:
+      - research
+    inputs:
+      - name: research_findings
+        source: step_output
+        step_id: research
+        output_name: research_findings
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: research_brief
+        type: string
+    optional: true
+    skip_when: "story.complexity == 'low'"
+    timeout_ms: 180000
 
   - id: implement
     agent: developer
@@ -69,16 +109,18 @@ steps:
       what is needed. Do not add extra features, error handling, or abstractions
       beyond the story scope.
 
-      IMPORTANT: You are a SEPARATE agent from the researcher. Do not rely on
-      context you "remember" from the research phase — work from the research
+      IMPORTANT: You are a SEPARATE agent from the researcher and writer. Do not
+      rely on context you "remember" from prior phases — work from the research
       brief and story spec only. This ensures you follow the spec, not shortcuts.
     depends_on:
-      - research
+      - preflight
+      - write-brief
     inputs:
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
+        optional: true
       - name: story_spec
         source: context
         context_key: story_spec
@@ -109,8 +151,9 @@ steps:
         output_name: implementation
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
+        optional: true
       - name: story_spec
         source: context
         context_key: story_spec
@@ -191,8 +234,9 @@ steps:
         output_name: platform_results
       - name: research_brief
         source: step_output
-        step_id: research
+        step_id: write-brief
         output_name: research_brief
+        optional: true
       - name: story_spec
         source: context
         context_key: story_spec
@@ -204,6 +248,48 @@ steps:
     optional: false
     timeout_ms: 300000
 
+  - id: codex-review
+    agent: reviewer
+    task: >
+      Run a Codex adversarial review on the implementation using the codex
+      companion script. This provides a second-model perspective after the
+      Claude review — different training, different blind spots.
+
+      Execute:
+      ```
+      node "{codex-companion-path}" adversarial-review "--scope auto"
+      ```
+
+      Parse the Codex output. If it finds P1 or P2 issues:
+      - Add them to codex_findings
+      - Set codex_verdict to "needs_attention"
+      If no significant issues: set codex_verdict to "passed"
+
+      This step is OPTIONAL — controlled by hive.config.yaml external_models.codex.enabled.
+      Skip silently if Codex is not enabled, not installed, or not authenticated.
+    depends_on:
+      - review
+    inputs:
+      - name: implementation
+        source: step_output
+        step_id: implement
+        output_name: implementation
+      - name: review_verdict
+        source: step_output
+        step_id: review
+        output_name: review_verdict
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: codex_verdict
+        type: string
+      - name: codex_findings
+        type: string
+    optional: true
+    skip_when: "external_models.codex.enabled is false or Codex CLI is not installed"
+    timeout_ms: 300000
+
   - id: optimize
     agent: developer
     step_file: workflows/steps/development-classic/step-07-optimize.md
@@ -211,14 +297,21 @@ steps:
       Apply the improvements listed in the review findings. Address each
       needs_optimization item. Do not change behavior — only improve quality,
       performance, or clarity as directed. Re-verify that acceptance criteria
-      are still satisfied after changes.
+      are still satisfied after changes. If Codex review found additional issues,
+      address those as well.
     depends_on:
       - review
+      - codex-review
     inputs:
       - name: review_findings
         source: step_output
         step_id: review
         output_name: review_findings
+      - name: codex_findings
+        source: step_output
+        step_id: codex-review
+        output_name: codex_findings
+        optional: true
       - name: implementation
         source: step_output
         step_id: implement
@@ -268,6 +361,7 @@ steps:
       files changed.
     depends_on:
       - review
+      - codex-review
       - dev-standby
     inputs:
       - name: implementation
@@ -278,6 +372,11 @@ steps:
         source: step_output
         step_id: review
         output_name: review_verdict
+      - name: codex_verdict
+        source: step_output
+        step_id: codex-review
+        output_name: codex_verdict
+        optional: true
       - name: story_spec
         source: context
         context_key: story_spec
@@ -286,3 +385,43 @@ steps:
         type: string
     optional: false
     timeout_ms: 600000
+
+  - id: doc-check
+    agent: technical-writer
+    task: >
+      After integration, check whether the changes require documentation updates.
+      Scan the implementation diff and story spec. Ask:
+
+      1. Did we add, rename, or remove a public-facing feature, command, or config option?
+      2. Did we change agent behavior, workflow phases, or planning process?
+      3. Did we add new reference docs, skills, or agents?
+      4. Did we change file paths, storage locations, or directory structure?
+
+      If YES to any: identify which docs need updating (README, GUIDE, reference docs,
+      config comments) and produce a brief update plan. If the structured outline
+      flagged documentation impact, start from that list.
+
+      If NO to all: report "no doc updates needed" and shut down.
+
+      This is a lightweight check — not a full rewrite. Flag what needs changing
+      so it can be addressed before the story is considered complete.
+    depends_on:
+      - integrate
+    inputs:
+      - name: implementation
+        source: step_output
+        step_id: implement
+        output_name: implementation
+      - name: commit_ref
+        source: step_output
+        step_id: integrate
+        output_name: commit_ref
+      - name: story_spec
+        source: context
+        context_key: story_spec
+    outputs:
+      - name: doc_update_plan
+        type: string
+    optional: true
+    skip_when: "story.complexity == 'low'"
+    timeout_ms: 180000

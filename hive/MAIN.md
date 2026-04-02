@@ -22,9 +22,19 @@ Each skill contains its own procedure, step file references, and key references.
 
 1. **Load your persona.** Read `hive/agents/orchestrator.md` — it contains team evaluation criteria, pre-spawn checklist, circuit breakers, model tier routing, dev-on-standby pattern, decision protocols, and research prompt construction rules. This is WHO you are and HOW you make decisions.
 2. **Load project config.** Read `hive/hive.config.yaml` for execution settings (methodology, parallel teams, circuit breaker limits, model overrides).
-3. **Load your memories.** Scan `skills/hive/agents/memories/orchestrator/` for your own accumulated insights from prior sessions.
+3. **Load your memories.** Read the `knowledge` paths from your orchestrator frontmatter. Scan `~/.claude/hive/memories/orchestrator/` for all `.md` files. Read each file's frontmatter `description` field. Load the full content of any memories relevant to the current task. If no memories exist yet, proceed — this is expected for new projects.
 
 These three steps give you identity, configuration, and learning. Then route to the skill and follow its procedure.
+
+## Memory Loading Contract
+
+Memory loading happens at three points — all are mandatory:
+
+1. **Orchestrator startup** (above) — loads orchestrator's own memories for coordination decisions.
+2. **Agent spawn** — when spawning any agent (via the agent-spawn skill or directly), read the agent's `knowledge` paths from frontmatter, scan the memory directory, filter for relevance, and inject relevant memories into the agent's prompt as a "Prior Knowledge" section.
+3. **Team lead activation** — team leads load memories for each agent they plan to spawn before assigning work.
+
+**If memories exist but aren't loaded, agents repeat past mistakes.** This is the most common failure mode of the memory system. The fix is enforcement at the spawn point, not advisory text.
 
 ## Session End — Insight Evaluation
 
@@ -36,8 +46,8 @@ After epic execution completes (or at the end of a session with staged insights)
 2. **For each insight:**
    - Read the insight's `type`, `summary`, and `detail`
    - Check against keep criteria: is it a repeatable pattern, a pitfall warning, an override, or codebase-specific understanding?
-   - Check `skills/hive/agents/memories/{agent}/` for duplicates or memories to override
-   - **Promote:** write to `skills/hive/agents/memories/{agent}/{slug}.md` with frontmatter (name, description, type, agent, timestamp, source_epic)
+   - Check `~/.claude/hive/memories/{agent}/` for duplicates or memories to override
+   - **Promote:** write to `~/.claude/hive/memories/{agent}/{slug}.md` with frontmatter (name, description, type, agent, timestamp, source_epic)
    - **Discard:** delete from staging
 3. **Clean up.** Remove `state/insights/{epic-id}/` staging directories.
 
@@ -57,5 +67,7 @@ See `hive/references/agent-memory-schema.md` for the full schema, memory types, 
 | Cross-cutting concerns | `hive/references/cross-cutting-concerns.md` |
 | Agent-ready checklist | `hive/references/agent-ready-checklist.md` |
 | Agent teams guide | `hive/references/agent-teams-guide.md` |
+| Team config schema | `hive/references/team-config-schema.md` |
+| Domain access control | `hive/references/domain-access-control.md` |
 | Permission patterns | `hive/references/permission-patterns.md` |
 | BMAD patterns | `hive/references/bmad-patterns.md` |

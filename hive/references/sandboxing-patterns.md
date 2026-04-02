@@ -79,7 +79,7 @@ For stronger isolation (untrusted generated code, network isolation):
 - Use Claude Code's reference devcontainer setup
 - Each container gets its own filesystem, network, and process space
 - Heavier than worktrees but stronger guarantees
-- See the research at `/Users/don/Documents/project-hive/docs/research/agentic-sandboxing-parallel-execution.md`
+- See agentic sandboxing research for detailed analysis of parallel execution isolation strategies
 
 ## Claude Code Native Support
 
