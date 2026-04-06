@@ -134,6 +134,19 @@ Decompose a requirement into an epic with dependency-tracked stories.
 
 ### Phase C: Story Decomposition
 
+11c. **Resolve methodology.** Before decomposing stories, determine the development methodology:
+
+   1. Check `hive.config.yaml` for a `methodology` field (project-level default)
+   2. Check `epic.yaml` for a `methodology` override (if the epic specifies one)
+   3. Fall back to `classic` if neither exists
+
+   Available methodologies (must match a workflow YAML in `hive/workflows/`):
+   - `classic` — Research → Implement → Test → Review → Integrate
+   - `tdd` — Research → Test Spec → Implement → Review → Integrate
+   - `bdd` — Research → Behavior Spec → Implement → Test → Review → Integrate
+
+   The resolved methodology determines what steps each story gets (see step 14).
+
 12. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Use all available planning context (design discussion, H/V plans if produced, structured outline if produced).
 
     **If vertical slice plan exists:** Stories map to vertical slices. Each slice becomes one or more stories. Stories within a slice can run in parallel, but slices execute sequentially (each depends_on the prior slice's stories). Every story's completion leaves the product in a working state — this is the vertical planning invariant.
@@ -156,6 +169,101 @@ Decompose a requirement into an epic with dependency-tracked stories.
     ```
 
 14. **Write detailed story files.** For each story, produce an individual YAML file in `state/epics/{epic-id}/stories/{story-id}.yaml`. Stories are the primary artifact — they're what agents read when executing. They must contain enough context for an agent to work autonomously without reading the full epic or other stories.
+
+    **Self-containment rule:** Stories must work identically whether read from local disk or pulled from an external tracker (e.g., Linear). To achieve this, **inline relevant context snippets** alongside file references:
+
+    - For `code_examples`: extract the relevant lines (~10 max) into a `snippet` field. The agent gets the pattern without needing the source file on disk.
+    - For `references`: change from a flat path list to objects with a `relevant_excerpt` field containing the 3-5 most relevant lines from that document.
+    - For `key_files`: add a `purpose` field explaining why each file matters to this story.
+
+    Snippets are optional but strongly encouraged. Skip only when the reference is an entire file that would be read in full anyway. The file path always stays for traceability — humans can look up the full document. The snippet is what makes the story portable.
+
+    **Methodology-aware steps:** Generate story steps that match the resolved methodology (from step 11c). Add a `methodology` field to each story YAML. Use these step templates:
+
+    **Classic** (default):
+    ```yaml
+    methodology: classic
+    steps:
+      - id: research
+        description: Explore the codebase for relevant patterns, files, and constraints
+        agent: researcher
+      - id: implement
+        description: Implement the story according to spec and research findings
+        agent: developer
+        depends_on: [research]
+      - id: test
+        description: Write tests covering acceptance criteria and verify they pass
+        agent: tester
+        depends_on: [implement]
+      - id: review
+        description: Review implementation and tests for correctness and convention compliance
+        agent: reviewer
+        depends_on: [test]
+      - id: integrate
+        description: Commit and push to feature branch
+        agent: developer
+        depends_on: [review]
+    ```
+
+    **TDD:**
+    ```yaml
+    methodology: tdd
+    steps:
+      - id: research
+        description: Explore the codebase for relevant patterns, files, and constraints
+        agent: researcher
+      - id: test-spec
+        description: |
+          Write failing tests from the story spec and acceptance criteria.
+          Do NOT read implementation code — tests define expected behavior independently.
+        agent: tester
+        depends_on: [research]
+      - id: implement
+        description: Write code to make the failing tests pass. Do not modify the tests.
+        agent: developer
+        depends_on: [test-spec]
+      - id: review
+        description: Review implementation and tests for correctness and convention compliance
+        agent: reviewer
+        depends_on: [implement]
+      - id: integrate
+        description: Commit and push to feature branch
+        agent: developer
+        depends_on: [review]
+    ```
+
+    **BDD:**
+    ```yaml
+    methodology: bdd
+    steps:
+      - id: research
+        description: Explore the codebase for relevant patterns, files, and constraints
+        agent: researcher
+      - id: behavior-spec
+        description: |
+          Write Gherkin/Given-When-Then behavior specifications from the story's
+          acceptance criteria. These specs define the contract before implementation.
+        agent: tester
+        depends_on: [research]
+      - id: implement
+        description: Implement the story to satisfy the behavior specifications
+        agent: developer
+        depends_on: [behavior-spec]
+      - id: test
+        description: Derive test cases from behavior specs and verify they pass
+        agent: tester
+        depends_on: [implement]
+      - id: review
+        description: Review implementation, behavior specs, and tests for correctness
+        agent: reviewer
+        depends_on: [test]
+      - id: integrate
+        description: Commit and push to feature branch
+        agent: developer
+        depends_on: [review]
+    ```
+
+    Customize step descriptions per story as needed — these templates provide the ordering and agent assignments. For low-complexity stories, the `research` step may be skipped regardless of methodology.
 
 15. **Evaluate cross-cutting concerns per story.** For each story, evaluate each concern's `applies_when` condition. For applicable concerns, determine the specific action needed and add a `cross_cutting` section to the story YAML. See `hive/references/cross-cutting-concerns.md` for format and examples.
 
@@ -262,6 +370,7 @@ epic: epic-id
 title: One-line description
 status: pending
 complexity: low | medium | high
+methodology: classic | tdd | bdd
 depends_on: []
 
 description: |
@@ -278,7 +387,9 @@ steps:
 context:
   codebase: /path/to/target/codebase
   tech_stack: {}
-  key_files: []
+  key_files:
+    - path: path/to/relevant/file
+      purpose: Why this file matters to this story
 
 files_to_modify:
   - file: path/to/file
@@ -287,6 +398,11 @@ files_to_modify:
 code_examples:
   - title: Pattern to follow
     file: path/to/example
+    snippet: |
+      # Optional but strongly encouraged (~10 lines max)
+      # The relevant code pattern extracted from the file
+      def example_function():
+          pass
 
 design_decisions:
   - decision: What was decided
@@ -302,7 +418,10 @@ risks:
     mitigation: How to avoid it
 
 references:
-  - path/to/relevant/file
+  - path: path/to/relevant/file
+    relevant_excerpt: |
+      Optional but encouraged — the 3-5 most relevant lines from this document.
+      Provides self-containment so the story works without the source file on disk.
 ```
 
 ## Epic Index Format
@@ -312,6 +431,7 @@ name: epic-id
 title: Epic Title
 description: What this epic accomplishes
 target_codebase: /path/to/codebase
+methodology: classic | tdd | bdd  # optional, overrides project config for this epic
 
 stories:
   - id: story-id
