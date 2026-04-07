@@ -109,6 +109,36 @@ If a new insight matches an existing reference memory's `topic` (keyword match o
 - Update `last_updated` in the frontmatter
 - Do NOT create a duplicate standalone memory
 
+### 4d. Compile memory wiki
+
+After promoting memories (steps 4, 4b, 4c), compile the memory wiki to reflect new knowledge.
+
+**When to compile:** Only if at least one insight was promoted in steps 4, 4b, or 4c. If no insights were promoted, skip compilation.
+
+**Compilation procedure:**
+
+1. **Identify affected topics:** For each newly promoted memory, determine which topic(s) it belongs to based on its `name`, `description`, and `type`. One memory may contribute to multiple topics. Use kebab-case slugs for topic names (e.g., `dependency-coupling`, `api-error-handling`).
+
+2. **Incremental compilation:** Only recompile topics touched by newly promoted memories. Do NOT recompile the entire wiki.
+
+3. **For each affected topic:**
+   a. Read ALL raw memories across ALL agents in `~/.claude/hive/memories/` whose topic assignment includes this slug
+   b. Separate memories by type: pattern, pitfall, codebase, override, reference
+   c. For `reference` type: append new content to existing topic article section (do not regenerate — reference memories have append semantics)
+   d. For all other types: regenerate the topic article via LLM synthesis — produce a readable summary, not a raw dump
+   e. Ensure all cross-references use `[[wikilinks]]` syntax (e.g., `[[dependency-coupling]]`, `[[agents/researcher]]`)
+   f. Write the topic article to `~/.claude/hive/memory-wiki/topics/{slug}.md`
+
+4. **Regenerate agent digests:** For each agent whose memories were touched, update `~/.claude/hive/memory-wiki/agents/{agent-name}.md` with backlinks to topic articles.
+
+5. **Update master index:** If any new topic slugs were introduced, add them to `~/.claude/hive/memory-wiki/index.md`.
+
+6. **Write compilation timestamp:** Write the current ISO 8601 timestamp to `~/.claude/hive/memory-wiki/meta/compiled-at.md`. This file is written LAST — if compilation is interrupted, the stale timestamp signals the wiki needs recompilation.
+
+**First-run note:** The first compilation after wiki structure creation will be a full compilation (all topics). This is expected to take longer than subsequent incremental runs.
+
+**If compilation fails:** Log "wiki stale — will use keyword fallback at next spawn." Do not block the session-end step. The wiki is an enhancement, not a requirement — L0 keyword scan remains the fallback.
+
 ### 5. Handle borderline cases
 For insights that do not clearly match keep or discard criteria:
 - Present them to the user with the insight summary and a recommendation
