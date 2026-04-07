@@ -63,6 +63,10 @@ type: pattern | pitfall | override | codebase
 agent: developer
 timestamp: 2026-03-25
 source_epic: hive-phase5
+last_verified: 2026-03-25      # date agent last confirmed accuracy (YYYY-MM-DD, optional)
+ttl_days: 90                   # time-to-live in days; null/omitted = no expiry (optional)
+source: agent                  # 'agent' (default) | 'imported' (optional)
+imported_from: ""              # label for import origin, e.g. "team-alpha-export" (optional)
 ---
 
 Detail of the insight and how to apply it in future work. Be specific —
@@ -80,9 +84,25 @@ the agent reading this in a future session understands both WHAT and WHY.
 | `codebase` | Project-specific understanding | "This project uses .f0 files (UTF-8 JSON) for wireframes. Frame0 CLI has offline and live modes." |
 | `reference` | Curated knowledge list with appendable entries and external docs | "Go Concurrency Patterns — accumulated channel patterns, context propagation rules, and links to official docs" |
 
+## TTL Defaults
+
+Default `ttl_days` values per memory type. These are starting recommendations — users can override per-memory.
+
+| Type | Default ttl_days | Rationale |
+|------|-----------------|-----------|
+| `pattern` | 90 | Patterns may become outdated as codebases evolve |
+| `pitfall` | 180 | Pitfalls are more durable — the underlying causes persist longer |
+| `codebase` | 60 | Codebases change frequently; stale codebase insights are actively misleading |
+| `override` | no expiry | Overrides are explicit corrections that remain valid until superseded |
+| `reference` | no expiry | Living documents with their own `last_updated` timestamp |
+
+Enforcement: TTL is surfaced as a staleness warning during memory loading (see wiki-retrieval). Memories past their TTL are flagged with `⚠ last verified: N days ago` — they are not auto-deleted.
+
 ## Reference Memories
 
 Reference memories are a special type: living documents that accumulate knowledge over time rather than capturing a single insight. They are **appendable** — new entries are added, never auto-removed.
+
+Reference memories have **append semantics** — new information is added to the existing file, not replacing it. The compiled wiki (see memory-store-interface) treats reference memories as living documents: when compiling topic articles, reference content is appended to existing topic sections rather than regenerating them.
 
 ### Reference memory format
 
@@ -147,6 +167,7 @@ Discard when the insight is:
 - **Only relevant to the immediate next step** — ephemeral context passed via prompts
 - **Already captured** in an existing memory
 - **Derivable** from reading the current code, config, or git history
+- **Secrets, credentials, or PII** — API keys, auth tokens, passwords, private keys, or personally identifiable information (names, emails, phone numbers of real people). Memory files are plaintext on disk and may be exported/shared across users.
 
 ## Insight Staging
 
