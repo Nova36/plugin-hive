@@ -273,7 +273,18 @@ Decompose a requirement into an epic with dependency-tracked stories.
 
 18. **Run agent-ready checklist.** Validate each story against the 9-point checklist in `hive/references/agent-ready-checklist.md` (including check #9: cross-cutting concerns). Flag stories that fail checks in the confirmation output.
 
-19. **Present for confirmation.** Show the dependency graph, story summaries, traceability results, cross-cutting concerns applied, UI detection results, and checklist results. Ask for final confirmation before saving.
+19. **Present for confirmation.** Show the dependency graph (using Mermaid format — see Diagram Format section below), story summaries, traceability results, cross-cutting concerns applied, UI detection results, and checklist results. Ask for final confirmation before saving.
+
+    Example dependency graph:
+    ````
+    ```mermaid
+    graph LR
+      cache-layer --> api-integration
+      cache-layer --> event-detail
+      api-integration --> e2e-tests
+      event-detail --> e2e-tests
+    ```
+    ````
 
 ### Flow Summary
 
@@ -439,6 +450,15 @@ stories:
     complexity: medium
     depends_on: []
 ```
+
+## Diagram Format
+
+All diagrams in Hive output (dependency graphs, flow diagrams) use **Mermaid** syntax. Mermaid renders natively in GitHub, Linear, and most markdown viewers.
+
+- Use `graph LR` (left-to-right) for dependency graphs
+- Use `graph TD` (top-down) for hierarchical or flow diagrams
+- Arrow syntax: `story-a --> story-b` means story-b depends on story-a
+- Keep node IDs matching story IDs for consistency
 
 ## Key References
 
