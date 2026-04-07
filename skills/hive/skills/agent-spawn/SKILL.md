@@ -64,16 +64,41 @@ Before reading any `knowledge` or `skills` paths, normalize them:
 
 Validation: after expansion, check that the resolved path exists. If it doesn't and no fallback is specified, log a warning (don't block the spawn — the directory may not have been bootstrapped yet).
 
-### 5. Load relevant memories
+### 5. Load agent memories (wiki-first retrieval)
 
 Read the agent's memory directory (from the resolved `knowledge` paths).
 
-For each memory file:
-1. Read the frontmatter `description` field
-2. Check relevance to the current task (keyword match against story description)
-3. Load the full content of relevant memories
+**5a. Check wiki freshness:**
+- Read `~/.claude/hive/memory-wiki/meta/compiled-at.md`
+- If file absent or timestamp > 24 hours old: go to step 5c (L0 fallback)
+- If file present and recent: proceed to step 5b
 
-Include relevant memories in the agent's prompt as a "Prior Knowledge" section.
+**5b. Wiki-based retrieval (L1):**
+- Read `~/.claude/hive/memory-wiki/index.md`
+- Identify topic slugs most relevant to the current task/story description
+- Read the corresponding topic articles from `~/.claude/hive/memory-wiki/topics/`
+- Optionally read the agent's digest from `~/.claude/hive/memory-wiki/agents/{agent}.md`
+- Format loaded content as the "Prior Knowledge" block (same injection format as below)
+- Proceed to step 5d for staleness surfacing
+
+**5c. L0 fallback (keyword scan — current behavior):**
+- Scan the memory directory for all `.md` files
+- Read each memory's frontmatter `description` field
+- Check relevance to the current task (keyword match: memory descriptions vs story description/context)
+- Load the full content of relevant memories
+- `override` and `pitfall` types always load (bypass relevance filter)
+- `reference` type loads when topic keyword matches
+- Cap at 5 memories; prefer recency
+- Format as "Prior Knowledge" block
+
+**5d. Staleness and override surfacing:**
+- For each loaded memory: check `last_verified` + `ttl_days` vs today's date
+- If past TTL: prepend `⚠ last verified: N days ago` to that memory's entry in Prior Knowledge
+- Count override-type memories loaded; if count > 0, add header line:
+  `{N} override memories loaded — oldest: {X} days since last_verified`
+- These are informational signals, not blocking errors
+
+Include relevant memories in the agent's prompt as a "Prior Knowledge" section, after the persona and before the task instructions.
 
 ### 6. Check for applicable skills
 

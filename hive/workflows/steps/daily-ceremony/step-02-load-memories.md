@@ -31,6 +31,24 @@ Load agent memories and cross-cutting concerns relevant to today's active epics 
 
 ## TASK SEQUENCE
 
+### 0. Staged insight recovery (pre-step)
+
+Before loading memories, check for unpromoted staged insights from prior sessions:
+
+1. Scan `state/insights/` for any `.md` or `.yaml` files
+2. If no files found: skip to step 1
+3. If files found: surface to the user —
+   "Found {N} staged insights from a prior session that were not promoted.
+   These may be lost if not promoted now.
+   Options: (a) promote all now, (b) review individually, (c) skip"
+4. If user selects promote: run the session-end promotion procedure (see step-08-session-end.md steps 2-4) for each staged insight
+5. If user selects review: present each insight for individual keep/discard decision
+6. If user skips: note that insights remain in `state/insights/` for manual review later
+7. Continue with step 1 (normal memory loading)
+
+**Non-interactive mode:** If running in CI or automated mode (no TTY), skip the prompt and log:
+"Staged insights found — run manual promotion to preserve."
+
 ### 1. Scan agent memory directories
 List directories under `~/.claude/hive/memories/`. Each subdirectory is named for an agent (e.g., `developer/`, `tester/`, `architect/`). For each agent directory, list all `.md` memory files.
 
