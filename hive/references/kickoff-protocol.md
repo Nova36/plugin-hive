@@ -252,6 +252,91 @@ When Phase 2b-iii runs on a project that already has `code_quality` data:
 
 This ensures `kickoff` can be re-run safely without losing manual curation.
 
+#### Phase 2b-iv: Cross-Cutting Concern Auto-Generation
+
+Silently auto-generate project-specific cross-cutting concerns from the discovered tech stack. No interactive review gate — write the file and show a summary.
+
+<!-- DATA CONTRACT: Writes to state/cross-cutting-concerns.yaml → concerns: [] -->
+<!-- Default: concerns contain at minimum the 'documentation' concern -->
+
+##### Step 1: Map Tech Stack to Template
+
+Read `tech_stack` from `state/project-profile.yaml` (populated in Phase 2). Map the discovered stack to a concern template file in `hive/references/examples/`:
+
+| Tech Stack Signal | Template File |
+|-------------------|---------------|
+| KMP, Kotlin Multiplatform, Compose Multiplatform, Android + iOS | `cross-cutting-concerns.mobile-app.yaml` |
+| React, Next.js, Vue, Angular, Svelte | *(no template — web)* |
+| Express, FastAPI, Django, Rails, Spring | *(no template — API)* |
+| CLI, argparse, cobra, clap | *(no template — CLI)* |
+
+Detection logic:
+1. Read `tech_stack.frameworks[]` and `tech_stack.languages[]` from project profile
+2. If any framework or language matches mobile indicators (KMP, `kotlin-multiplatform`, `compose-multiplatform`, Android, iOS, Swift + Kotlin together, React Native, Flutter) → use `cross-cutting-concerns.mobile-app.yaml`
+3. If no template file matches → fall through to Step 3 (graceful fallback)
+
+##### Step 2: Generate Concerns from Template
+
+If a matching template was found:
+
+1. **Read the template** YAML from `hive/references/examples/{template-file}`
+2. **Read existing** `state/cross-cutting-concerns.yaml` (may already have concerns from prior runs or manual edits)
+3. **Idempotent merge** using the following algorithm:
+   - Parse both files into concern lists, keyed by `id`
+   - For each concern in the **template**:
+     - If a concern with the same `id` exists in the **state file** → **keep the state file version** (it may have manual edits)
+     - If the concern `id` is new (not in state file) → **append** it to the state file
+   - For each concern in the **state file** that is NOT in the template → **preserve** it (user added it manually)
+   - The `documentation` concern (default) is always preserved — never removed
+4. **Write** the merged result to `state/cross-cutting-concerns.yaml`
+5. **Count** how many new concerns were added (template entries not previously in state file)
+
+##### Step 3: Graceful Fallback (No Template)
+
+If no template matches the detected tech stack:
+
+1. Ensure `state/cross-cutting-concerns.yaml` exists with at least the `documentation` concern:
+   ```yaml
+   concerns:
+     - id: documentation
+       name: Documentation Updates
+       description: >
+         When a story changes user-facing behavior, workflow steps, or configuration,
+         corresponding documentation must be updated.
+       applies_when: >
+         Story modifies workflows, schemas, directory structure, configuration files,
+         or adds/removes/renames reference documents
+       planning_prompt: >
+         Which documentation files reference the behavior this story changes?
+         List each doc and what section needs updating.
+       implementation_checklist:
+         - "All docs referencing changed behavior identified"
+         - "Affected sections updated to reflect new behavior"
+         - "No stale references to old behavior remain"
+   ```
+2. If the file already exists with concerns, do not modify it — just proceed to summary
+
+##### Step 4: Output Summary
+
+Print a single summary line (no interactive prompt, no review gate):
+
+- **Template matched:** `"Auto-generated N concerns for {stack}. Edit at state/cross-cutting-concerns.yaml."`
+  - Where `N` is the count of newly added concerns (0 if all already existed from a prior run)
+  - Where `{stack}` is the matched template name (e.g., "mobile-app")
+- **No template:** `"No concern templates found for {stack}. Using 'documentation' default. Edit at state/cross-cutting-concerns.yaml."`
+  - Where `{stack}` is the detected primary framework/language (e.g., "react", "fastapi")
+
+This summary is informational only — kickoff continues to the next phase regardless.
+
+##### Step 5: Idempotent Re-Run Safety
+
+When Phase 2b-iv runs on a project that already has `state/cross-cutting-concerns.yaml`:
+
+1. **Never remove** existing concerns — they may have been manually curated
+2. **Never overwrite** an existing concern's fields — the user may have customized `applies_when`, `planning_prompt`, or checklist items
+3. **Only append** template concerns whose `id` is not already present
+4. **Re-running produces identical output** if no new concerns need adding (N=0 in summary)
+
 #### Phase 2b Data Flow Summary
 
 | Sub-phase | Target File | Target Section |
@@ -259,6 +344,7 @@ This ensures `kickoff` can be re-run safely without losing manual curation.
 | 2b-i Integration Preflight | project-profile.yaml | `integrations` |
 | 2b-ii Developer Discovery | hive.config.yaml | `developer` |
 | 2b-iii Code Quality & Linter Detection | project-profile.yaml | `code_quality` (linters, formatters, pre_commit, code_snippets, test_first_signals), `project_maturity` |
+| 2b-iv Cross-Cutting Concern Auto-Generation | state/cross-cutting-concerns.yaml | `concerns` |
 
 ---
 
