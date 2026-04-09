@@ -145,18 +145,22 @@ I've detected some patterns in your codebase. Here are my suggested defaults
 for how Hive should work with you — press Enter to accept all, or type the
 number(s) you'd like to change (e.g., "1,3"):
 
-  1. Methodology:       {inferred_methodology} {reason_hint}
-  2. PR style:          {inferred_pr_style}
-  3. Commit granularity: feature-scoped
-  4. Review depth:      standard
-  5. Additional notes:  (none)
+  1. Methodology:           {inferred_methodology} {reason_hint}
+  2. PR style:              {inferred_pr_style}
+  3. Commit granularity:    feature-scoped
+  4. Review depth:          standard
+  5. Collaborative reviews: on
+  6. Meta-team GitHub sync: off
+  7. Additional notes:      (none)
 
 Options for each:
   1 → Classic / TDD / BDD
   2 → single-commit / squash-merge / atomic-prs / bundled
   3 → fine (per-change) / medium (per-task) / coarse (per-story)
   4 → thorough / standard / light
-  5 → free text (workflow preferences, pet peeves, anything Hive should know)
+  5 → on / off (team review gates during planning — adds quality but takes longer)
+  6 → on / off (meta-team files plugin-level issues to GitHub — off keeps everything local)
+  7 → free text (workflow preferences, pet peeves, anything Hive should know)
 ```
 
 The `{reason_hint}` after methodology briefly explains why that default was chosen:
@@ -170,8 +174,10 @@ The `{reason_hint}` after methodology briefly explains why that default was chos
 2. If the developer types numbers (e.g., `1,3`) → prompt for each selected question individually:
    - `Methodology (Classic/TDD/BDD):` and wait for input
    - `Commit granularity (fine/medium/coarse):` and wait for input
-3. For Q5 (notes), if selected: `Any notes for Hive? (workflow preferences, things to avoid, etc.):` and capture free text
-4. Validate inputs — if an answer doesn't match known options, show the options again (once). On second invalid input, keep the default.
+3. For Q5 (collaborative reviews), if selected: `Collaborative reviews (on/off):` and wait for input
+4. For Q6 (meta-team GitHub sync), if selected: `Meta-team GitHub sync (on/off):` and wait for input
+5. For Q7 (notes), if selected: `Any notes for Hive? (workflow preferences, things to avoid, etc.):` and capture free text
+6. Validate inputs — if an answer doesn't match known options, show the options again (once). On second invalid input, keep the default.
 
 ##### Step 3: Write Preferences to Config
 
@@ -181,7 +187,9 @@ Write the final values (defaults + any overrides) to `hive.config.yaml`:
 2. **PR style** → `developer.pr_style`
 3. **Commit granularity** → `developer.commit_granularity`
 4. **Review depth** → `developer.review_depth`
-5. **Notes** → `developer.notes` (null if no notes provided)
+5. **Collaborative reviews** → `planning.collaborative_review` (on = `true`, off = `false`)
+6. **Meta-team GitHub sync** → `meta_team.github_forwarding` (on = `true`, off = `false`)
+7. **Notes** → `developer.notes` (null if no notes provided)
 
 Example result in `hive.config.yaml`:
 
