@@ -109,7 +109,7 @@ If all checks pass, proceed normally.
 
 4. **Produce design discussion.** `SendMessage` to the technical writer with the `design-discussion` skill (`skills/hive/skills/design-discussion/SKILL.md`). Input: the research brief + the original user request. Output: a ~200-line design discussion document covering goal, proposed approach, risks, dependencies, open questions, and a scale assessment.
 
-4b. **Collaborative review gate.** Run the collaborative review gate (see Collaborative Review Gate section below). `SendMessage` the design discussion to all active team agents for review. Collect feedback, have the writer revise if needed, then proceed.
+4b. **Collaborative review gate (if enabled).** Check `hive.config.yaml → planning.collaborative_review`. If `true` (default), run the collaborative review gate (see Collaborative Review Gate section below). `SendMessage` the design discussion to all active team agents for review. Collect feedback, have the writer revise if needed, then proceed. If `false`, skip the review gate and present the document directly to the user.
 
 5. **Present design discussion to user.** Show the full document, including a summary of what the team flagged and resolved during collaborative review. The user reads it and provides feedback:
    - Affirm or correct the understanding of the goal
@@ -142,7 +142,7 @@ If all checks pass, proceed normally.
 
    The TPM is the owner of this step. The architect (if present) has already contributed their perspective in earlier phases — the TPM now sequences their inputs into an executable delivery plan.
 
-7. **Collaborative review gate.** Run the collaborative review gate on the H/V outputs. `SendMessage` both documents to all active team agents. The researcher verifies findings are accurately reflected, the architect (if present) validates technical soundness, and the UI designer (if present) flags any UI layer gaps. Collect feedback, have the writer revise if needed.
+7. **Collaborative review gate (if enabled).** If `hive.config.yaml → planning.collaborative_review` is `true` (default), run the collaborative review gate on the H/V outputs. `SendMessage` both documents to all active team agents. The researcher verifies findings are accurately reflected, the architect (if present) validates technical soundness, and the UI designer (if present) flags any UI layer gaps. Collect feedback, have the writer revise if needed. If `false`, skip and proceed directly.
 
 8. **H/V gate (conditional).** Behavior depends on scope and flags:
 
@@ -162,7 +162,7 @@ If all checks pass, proceed normally.
 
 9. **Produce structured outline.** `SendMessage` to the technical writer with the `structured-outline` skill (`skills/hive/skills/structured-outline/SKILL.md`). Input: H/V plans + design discussion + user feedback + research brief. Output: a ~1000-line structured outline with detailed approach, file manifest, risk registry, and elicitation questions. The outline now builds ON the vertical slice plan — each phase in the outline maps to a vertical slice.
 
-9b. **Collaborative review gate.** Run the collaborative review gate on the structured outline. This is the most critical review — all active team agents review the full outline. The TPM validates sequencing, the researcher confirms technical accuracy, the architect (if present) stress-tests feasibility, and the UI designer (if present) validates UI approach. Collect feedback, have the writer revise if needed.
+9b. **Collaborative review gate (if enabled).** If `hive.config.yaml → planning.collaborative_review` is `true` (default), run the collaborative review gate on the structured outline. This is the most critical review — all active team agents review the full outline. The TPM validates sequencing, the researcher confirms technical accuracy, the architect (if present) stress-tests feasibility, and the UI designer (if present) validates UI approach. Collect feedback, have the writer revise if needed. If `false`, skip and proceed directly.
 
 10. **Present structured outline to user.** Show the full document, including a summary of team review findings. The elicitation section (Part 7) contains the agent team's own stress-test of the plan — the user reads the team's answers to evaluate whether the thinking is sound. The user then:
     - Flags any elicitation answers that seem weak or wrong
@@ -337,7 +337,9 @@ Large:   team assembly → research → brief → design discussion → team rev
 
 A collaborative review gate runs before every user-facing document presentation. This ensures all team agents align on the content and catch gaps before the user sees it.
 
-**When to run:** After steps 4, 7, and 9b — i.e., after each major document is produced and before it's presented to the user.
+**Opt-out:** Set `hive.config.yaml → planning.collaborative_review: false` to skip all collaborative review gates. When disabled, documents are presented directly to the user without team review. This saves time on smaller projects or when the user prefers to be the sole reviewer.
+
+**When to run (if enabled):** After steps 4, 7, and 9b — i.e., after each major document is produced and before it's presented to the user.
 
 **Protocol:**
 

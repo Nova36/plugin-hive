@@ -66,7 +66,19 @@ Examples:
 - `[meta-team] Cycle meta-2026-04-09 — 3 changes: vertical-planning.md, status skill meta section, orchestrator memory`
 - `[meta-team] Cycle meta-2026-04-09 — 0 changes: analysis found 5 issues, all blocked by charter scope`
 
-### 3. Update ledger.yaml
+### 3. Forward plugin-level issues (opt-in)
+
+**Only if `hive.config.yaml → meta_team.github_forwarding: true`.**
+
+Check skipped findings in cycle-state.yaml for entries with `forward_to_github: true`. For each:
+
+```bash
+gh issue create --title "[meta-team] {finding title}" --body "{description with evidence}" --label "meta-team-auto"
+```
+
+Record the issue URL in cycle-state.yaml under `forwarded_issues`. If `github_forwarding` is false (default), skip this step entirely.
+
+### 4. Update ledger.yaml
 After the commit succeeds, append to `state/meta-team/ledger.yaml`:
 ```yaml
 - cycle_id: {cycle_id}
@@ -86,7 +98,7 @@ After the commit succeeds, append to `state/meta-team/ledger.yaml`:
 
 If ledger.yaml does not exist, create it with a YAML list header.
 
-### 4. Produce morning summary
+### 5. Produce morning summary
 Write the morning summary to `state/meta-team/morning-summary.md`.
 
 Follow the format in `hive/references/meta-team-ux.md`.
@@ -107,7 +119,7 @@ Minimal format if that reference doesn't exist:
 - Next cycle priority: {top deferred finding}
 ```
 
-### 5. Final confirmation
+### 6. Final confirmation
 Verify:
 - `state/meta-team/cycle-state.yaml` has `status: closed`
 - `state/meta-team/ledger.yaml` has the new entry

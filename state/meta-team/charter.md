@@ -50,7 +50,20 @@ Self-optimize the Hive plugin. Find real gaps, fix them, document what changed, 
 - Changes to user project `state/` directories (epics, episodes, cycle-state)
 - Modifying `.claude-plugin/plugin.json` or `marketplace.json`
 - Pushing to remote
-- Creating or modifying Linear/GitHub integrations
+- Creating or modifying Linear/GitHub integrations (unless `github_forwarding` is enabled — see below)
+
+## GitHub Issue Forwarding (Opt-In)
+
+By default, the meta-team only optimizes locally — findings stay in `state/meta-team/` and the morning summary. Plugin-level issues that fall outside the meta-team's charter scope are logged as skipped findings.
+
+When `hive.config.yaml → meta_team.github_forwarding: true`, the meta-team may file GitHub issues for findings that:
+1. Are **out of charter scope** but represent genuine plugin-level bugs or gaps
+2. Affect plugin consumers (not just the local project)
+3. Have clear reproduction steps or evidence from the analysis
+
+Issues are filed via `gh issue create` with the `[meta-team]` prefix and the `meta-team-auto` label. The meta-team does NOT fix these issues — it only reports them.
+
+**When forwarding is disabled (default):** Out-of-scope findings are logged in cycle-state.yaml with `reason: out_of_scope` and surfaced in the morning summary under "What Was Found (Not Fixed This Cycle)." No external actions are taken.
 
 ---
 

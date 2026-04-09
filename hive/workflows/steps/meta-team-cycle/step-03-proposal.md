@@ -37,6 +37,8 @@ Review each finding from step 2:
 - If the fix requires human confirmation (config changes, tool lists): mark as `needs_human`, skip
 - Remaining findings: eligible for proposals
 
+**GitHub forwarding check:** If `hive.config.yaml → meta_team.github_forwarding: true`, findings marked `out_of_scope` that represent genuine plugin-level bugs or gaps should be tagged `forward_to_github: true` in the skipped findings list. These will be filed as GitHub issues in the close step. If forwarding is disabled (default), skip this — out-of-scope findings stay local only.
+
 ### 2. Group related findings
 Some findings address the same root cause. Group them into single proposals where the implementation naturally covers multiple findings (e.g., "create missing reference doc" may resolve both a MISSING_FILE finding and a dangling cross-reference).
 
