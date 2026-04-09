@@ -1,0 +1,9 @@
+story: s7-memory-targeting
+phase: implement
+status: complete
+date: "2026-04-08"
+summary: |
+  Created hive/references/meta-team-memory-targeting.md — memory ecosystem scanning reference.
+  Defines 7 memory sources (feedback, project, insights, trust scores, episodes, team, gates),
+  pattern detection rules (2+ occurrences, trust decline >0.1), episode analysis with available
+  fields (no duration assumed), evidence-based ranking, and multi-source target examples.
