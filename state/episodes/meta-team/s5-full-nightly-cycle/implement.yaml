@@ -1,0 +1,10 @@
+story: s5-full-nightly-cycle
+phase: implement
+status: complete
+date: "2026-04-08"
+summary: |
+  Created state/teams/meta-team.yaml (team config with 5-agent pipeline and domain access).
+  Created hive/references/meta-team-nightly-cycle.md (full cycle reference with all 8 phases,
+  CronCreate scheduling, budget enforcement, state cleanup, interrupted cycle recovery,
+  post-promotion monitoring, and lifecycle diagram). Integrates S3 baseline, S4 sandbox,
+  S6 external research, and S7 memory targeting into the complete pipeline.

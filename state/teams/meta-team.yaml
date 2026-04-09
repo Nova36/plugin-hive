@@ -1,0 +1,114 @@
+name: meta-team
+description: >
+  Autonomous self-optimizing team. Runs nightly to analyze Hive performance,
+  research AI trends, and apply targeted non-destructive optimizations.
+  5-agent pipeline within a 5-hour budget. Operates under the optimization
+  charter (state/meta-team/charter.md).
+lead: orchestrator
+methodology: meta-team
+workflow: meta-team-cycle
+
+scheduling:
+  cron: "3 3 * * *"           # 3:03 AM CST nightly
+  durable: true                # persists to .claude/scheduled_tasks.json
+  budget_minutes: 300          # 5-hour window
+  phase_skip_threshold: 90     # <90 min remaining → skip to close
+
+members:
+  - agent: researcher
+    role: Phase 2 — Internal analysis, external research, memory targeting
+    phases: [analysis]
+    domain:
+      - path: hive/**
+        read: true
+        write: false
+        delete: false
+      - path: state/meta-team/**
+        read: true
+        write: true
+        delete: false
+      - path: "~/.claude/hive/memories/**"
+        read: true
+        write: false
+        delete: false
+      - path: state/insights/**
+        read: true
+        write: false
+        delete: false
+      - path: state/episodes/**
+        read: true
+        write: false
+        delete: false
+      - path: state/team-memories/**
+        read: true
+        write: false
+        delete: false
+
+  - agent: architect
+    role: Phase 3 — Read queue, produce structured proposals (1-3 per cycle)
+    phases: [proposal]
+    domain:
+      - path: state/meta-team/queue.yaml
+        read: true
+        write: false
+        delete: false
+      - path: state/meta-team/charter.md
+        read: true
+        write: false
+        delete: false
+      - path: hive/**
+        read: true
+        write: false
+        delete: false
+
+  - agent: developer
+    role: Phase 4 — Implement proposals in isolated worktrees
+    phases: [implementation]
+    domain:
+      - path: ".claude/worktrees/meta-team-*/**"
+        read: true
+        write: true
+        delete: false
+      - path: hive/**
+        read: true
+        write: false
+        delete: false
+
+  - agent: tester
+    role: Phase 5 — Sandbox validation (destructiveness, structural, heuristic)
+    phases: [testing]
+    domain:
+      - path: ".claude/worktrees/meta-team-*/**"
+        read: true
+        write: false
+        delete: false
+      - path: state/meta-team/charter.md
+        read: true
+        write: false
+        delete: false
+      - path: hive/**
+        read: true
+        write: false
+        delete: false
+
+  - agent: reviewer
+    role: Phase 6 — Independent evaluation (keep/discard/defer)
+    phases: [evaluation]
+    domain:
+      - path: ".claude/worktrees/meta-team-*/**"
+        read: true
+        write: false
+        delete: false
+      - path: state/meta-team/charter.md
+        read: true
+        write: false
+        delete: false
+    constraints:
+      - "Cannot see architect's rationale — evaluate independently from tester metrics and diff"
+
+pipeline_invariants:
+  - "Proposer (architect) != evaluator (reviewer)"
+  - "All changes validated in sandbox before promotion"
+  - "Subjective changes deferred, never auto-promoted"
+  - "Budget enforcement at every phase boundary"
+  - "One worktree per proposal, never shared"
