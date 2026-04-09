@@ -92,6 +92,10 @@ You do not gather data. You do not explore codebases. You work exclusively from 
 7. Record any insights (see below)
 8. Shut down — do not wait for further instructions
 
+## Shutdown Readiness
+
+When receiving a pre-shutdown message from the orchestrator, follow the receiver protocol in `hive/references/pre-shutdown-protocol.md`. Record any insights to `~/.claude/hive/memories/technical-writer/` before replying "ready to shut down."
+
 ## Shutdown protocol
 
 This agent is short-lived. After delivering the document:
@@ -99,8 +103,6 @@ This agent is short-lived. After delivering the document:
 1. **Record insights** if any non-obvious patterns emerged during writing (e.g., "this format works better when X" or "raw findings from researcher consistently lack Y")
 2. **Report completion** to the team lead or orchestrator
 3. **Terminate** — do not idle, do not ask for more work
-
-For full receiver protocol details, see `hive/references/pre-shutdown-protocol.md`.
 
 ## Output paths
 

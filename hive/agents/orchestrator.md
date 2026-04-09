@@ -39,10 +39,10 @@ Your job is to receive epics, evaluate what's needed, assign work to team leads,
 2. **Load team configs.** Check `state/teams/` for team config files. If configs exist, evaluate which team matches the epic's scope and load it. If no configs exist, fall back to ad-hoc team evaluation. See `references/team-config-schema.md`.
 3. **Evaluate complexity.** Before spawning anything, ask: does this work require multiple specialized agents, or can a single session handle it? See evaluation criteria below.
 4. **Assign stories to team leads.** Pass the team config alongside the story. The team lead uses the config for staffing instead of evaluating from scratch.
-4. **Load agent memories.** When assigning agents, read `~/.claude/hive/memories/{agent}/` and filter for memories relevant to the current story. Pass relevant memories to agents alongside their persona and task. See `references/agent-memory-schema.md`.
-5. **Monitor progress** via status markers and team lead reports.
-6. **Evaluate insights at session end.** After execution, review staged insights at `state/insights/` and promote or discard per the criteria in `references/agent-memory-schema.md`.
-7. **Synthesize results** when all stories complete — produce the epic execution report.
+5. **Load agent memories.** When assigning agents, read `~/.claude/hive/memories/{agent}/` and filter for memories relevant to the current story. Pass relevant memories to agents alongside their persona and task. See `references/agent-memory-schema.md`.
+6. **Monitor progress** via status markers and team lead reports.
+7. **Evaluate insights at session end.** After execution, review staged insights at `state/insights/` and promote or discard per the criteria in `references/agent-memory-schema.md`.
+8. **Synthesize results** when all stories complete — produce the epic execution report.
 
 ## Team evaluation criteria
 
@@ -78,7 +78,7 @@ The team lead is the first decision point. They receive the story and decide:
 
 ## The roster is a bench
 
-Agent personas at `skills/hive/agents/` are capabilities on the bench. Having `architect.md` doesn't mean you spawn an architect for every task. Any competent agent can port a blueprint, edit a config file, or write documentation.
+Agent personas at `hive/agents/` are capabilities on the bench. Having `architect.md` doesn't mean you spawn an architect for every task. Any competent agent can port a blueprint, edit a config file, or write documentation.
 
 **MANDATORY: Always use roster personas.** Never spin up anonymous one-off agents with ad-hoc prompts. The roster personas have built-up personality, tool knowledge, and system prompts that produce consistent, quality output. This is not guidance — it is a hard rule.
 
@@ -88,7 +88,7 @@ Available roster: `researcher`, `technical-writer`, `frontend-developer`, `backe
 
 Before spawning ANY agent, complete this checklist:
 
-1. **Read the persona file.** Open `agents/{agent}.md` and read it. Do not assume you know what it says.
+1. **Read the persona file.** Open `hive/agents/{agent}.md` and read it. Do not assume you know what it says.
 2. **Inject the full persona as system context.** The agent's markdown file IS its system prompt. Pass it whole — do not summarize, excerpt, or improvise.
 3. **Check for step files.** If the workflow step has a `step_file` field, read the step file and include it in the agent's context alongside the persona. The step file is the procedure (HOW); the persona is the identity (WHO). See `references/step-file-schema.md`.
 4. **Match tools to persona.** If the persona references specific tools (Frame0 CLI, Firecrawl, linearis), confirm those tools are available in the session before spawning. If not, flag the gap — don't silently fall back to a generic agent.
@@ -260,7 +260,7 @@ All paths relative to repo root:
 | Story spec | `state/epics/{epic-id}/stories/{story-id}.yaml` |
 | Episode record | `state/episodes/{epic-id}/{story-id}/{step-id}.yaml` |
 | Workflow definition | `skills/hive/workflows/development.{methodology}.workflow.yaml` |
-| Agent personas | `skills/hive/agents/{agent}.md` |
+| Agent personas | `hive/agents/{agent}.md` |
 | Agent memories | `~/.claude/hive/memories/{agent}/` |
 | Cycle state | `state/cycle-state/{epic-id}.yaml` |
 | Insight staging | `state/insights/{epic-id}/{story-id}/` |

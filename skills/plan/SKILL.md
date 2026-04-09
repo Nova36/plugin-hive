@@ -135,20 +135,20 @@ If all checks pass, proceed normally.
 
 ### Phase B2: Horizontal + Vertical Planning (medium and large scope)
 
-7. **TPM plans the delivery.** `SendMessage` to the TPM with the design discussion, user feedback, research brief, and any architect outputs. The TPM:
+6. **TPM plans the delivery.** `SendMessage` to the TPM with the design discussion, user feedback, research brief, and any architect outputs. The TPM:
    a. Maps all architectural layers and cross-layer dependencies (horizontal thinking)
    b. Cuts vertical slices — minimum cross-stack increments that each produce a working state
    c. Directs the technical writer to produce both documents using the horizontal-plan and vertical-plan skills
 
    The TPM is the owner of this step. The architect (if present) has already contributed their perspective in earlier phases — the TPM now sequences their inputs into an executable delivery plan.
 
-8. **Collaborative review gate.** Run the collaborative review gate on the H/V outputs. `SendMessage` both documents to all active team agents. The researcher verifies findings are accurately reflected, the architect (if present) validates technical soundness, and the UI designer (if present) flags any UI layer gaps. Collect feedback, have the writer revise if needed.
+7. **Collaborative review gate.** Run the collaborative review gate on the H/V outputs. `SendMessage` both documents to all active team agents. The researcher verifies findings are accurately reflected, the architect (if present) validates technical soundness, and the UI designer (if present) flags any UI layer gaps. Collect feedback, have the writer revise if needed.
 
-9. **H/V gate (conditional).** Behavior depends on scope and flags:
+8. **H/V gate (conditional).** Behavior depends on scope and flags:
 
    - **Large scope:** Always present both documents to the user for review. Collect feedback, incorporate, then proceed to Phase B3.
    - **Medium scope + `--gate-hv`:** Present both documents to the user for review. Collect feedback, incorporate, then proceed to Phase C.
-   - **Medium scope (default, no `--gate-hv`):** Auto-proceed to Phase C without presenting a gate — the collaborative review in step 8 is sufficient.
+   - **Medium scope (default, no `--gate-hv`):** Auto-proceed to Phase C without presenting a gate — the collaborative review in step 7 is sufficient.
    - **Medium scope + `--fast`:** H/V planning was skipped entirely at step 5 — this step is never reached.
 
    **When the gate runs (large or medium + `--gate-hv`), the user reviews:**
@@ -160,11 +160,11 @@ If all checks pass, proceed normally.
 
 ### Phase B3: Structured Outline (large scope only)
 
-10. **Produce structured outline.** `SendMessage` to the technical writer with the `structured-outline` skill (`skills/hive/skills/structured-outline/SKILL.md`). Input: H/V plans + design discussion + user feedback + research brief. Output: a ~1000-line structured outline with detailed approach, file manifest, risk registry, and elicitation questions. The outline now builds ON the vertical slice plan — each phase in the outline maps to a vertical slice.
+9. **Produce structured outline.** `SendMessage` to the technical writer with the `structured-outline` skill (`skills/hive/skills/structured-outline/SKILL.md`). Input: H/V plans + design discussion + user feedback + research brief. Output: a ~1000-line structured outline with detailed approach, file manifest, risk registry, and elicitation questions. The outline now builds ON the vertical slice plan — each phase in the outline maps to a vertical slice.
 
-10b. **Collaborative review gate.** Run the collaborative review gate on the structured outline. This is the most critical review — all active team agents review the full outline. The TPM validates sequencing, the researcher confirms technical accuracy, the architect (if present) stress-tests feasibility, and the UI designer (if present) validates UI approach. Collect feedback, have the writer revise if needed.
+9b. **Collaborative review gate.** Run the collaborative review gate on the structured outline. This is the most critical review — all active team agents review the full outline. The TPM validates sequencing, the researcher confirms technical accuracy, the architect (if present) stress-tests feasibility, and the UI designer (if present) validates UI approach. Collect feedback, have the writer revise if needed.
 
-11. **Present structured outline to user.** Show the full document, including a summary of team review findings. The elicitation section (Part 7) contains the agent team's own stress-test of the plan — the user reads the team's answers to evaluate whether the thinking is sound. The user then:
+10. **Present structured outline to user.** Show the full document, including a summary of team review findings. The elicitation section (Part 7) contains the agent team's own stress-test of the plan — the user reads the team's answers to evaluate whether the thinking is sound. The user then:
     - Flags any elicitation answers that seem weak or wrong
     - Responds to the decision points (Part 8) — numbered affirm/change items
     - Provides final sign-off or requests revisions
@@ -173,7 +173,7 @@ If all checks pass, proceed normally.
 
 ### Phase C: Story Decomposition
 
-11c. **Resolve methodology.** Before decomposing stories, determine the development methodology:
+10c. **Resolve methodology.** Before decomposing stories, determine the development methodology:
 
    1. Check `hive.config.yaml` for a `methodology` field (project-level default)
    2. Check `epic.yaml` for a `methodology` override (if the epic specifies one)
@@ -186,13 +186,13 @@ If all checks pass, proceed normally.
 
    The resolved methodology determines what steps each story gets (see step 14).
 
-12. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Use all available planning context (design discussion, H/V plans if produced, structured outline if produced).
+11. **Decompose into stories.** Break the requirement into an **epic** containing multiple **stories**. Use all available planning context (design discussion, H/V plans if produced, structured outline if produced).
 
     **If vertical slice plan exists:** Stories map to vertical slices. Each slice becomes one or more stories. Stories within a slice can run in parallel, but slices execute sequentially (each depends_on the prior slice's stories). Every story's completion leaves the product in a working state — this is the vertical planning invariant.
 
     **If no vertical slice plan:** Decompose as before — independently implementable stories with dependency tracking.
 
-13. **Requirements traceability check.** Before finalizing stories, verify every aspect of the original requirement is covered by at least one story:
+12. **Requirements traceability check.** Before finalizing stories, verify every aspect of the original requirement is covered by at least one story:
     - Re-read the original requirement/PRD
     - List every distinct capability, feature, or behavior mentioned
     - Map each to at least one story
@@ -207,7 +207,7 @@ If all checks pass, proceed normally.
       - Contact permission flow — not covered by any story
     ```
 
-14. **Write detailed story files.** For each story, produce an individual YAML file in `state/epics/{epic-id}/stories/{story-id}.yaml`. Stories are the primary artifact — they're what agents read when executing. They must contain enough context for an agent to work autonomously without reading the full epic or other stories.
+13. **Write detailed story files.** For each story, produce an individual YAML file in `state/epics/{epic-id}/stories/{story-id}.yaml`. Stories are the primary artifact — they're what agents read when executing. They must contain enough context for an agent to work autonomously without reading the full epic or other stories.
 
     **Self-containment rule:** Stories must work identically whether read from local disk or pulled from an external tracker (e.g., Linear). To achieve this, **inline relevant context snippets** alongside file references:
 
@@ -217,7 +217,7 @@ If all checks pass, proceed normally.
 
     Snippets are optional but strongly encouraged. Skip only when the reference is an entire file that would be read in full anyway. The file path always stays for traceability — humans can look up the full document. The snippet is what makes the story portable.
 
-    **Methodology-aware steps:** Generate story steps that match the resolved methodology (from step 11c). Add a `methodology` field to each story YAML. Use these step templates:
+    **Methodology-aware steps:** Generate story steps that match the resolved methodology (from step 10c). Add a `methodology` field to each story YAML. Use these step templates:
 
     **Classic** (default):
     ```yaml
@@ -304,15 +304,15 @@ If all checks pass, proceed normally.
 
     Customize step descriptions per story as needed — these templates provide the ordering and agent assignments. For low-complexity stories, the `research` step may be skipped regardless of methodology.
 
-15. **Evaluate cross-cutting concerns per story.** For each story, evaluate each concern's `applies_when` condition. For applicable concerns, determine the specific action needed and add a `cross_cutting` section to the story YAML. See `hive/references/cross-cutting-concerns.md` for format and examples.
+14. **Evaluate cross-cutting concerns per story.** For each story, evaluate each concern's `applies_when` condition. For applicable concerns, determine the specific action needed and add a `cross_cutting` section to the story YAML. See `hive/references/cross-cutting-concerns.md` for format and examples.
 
-16. **Write the epic index.** Produce `state/epics/{epic-id}/epic.yaml` as a lightweight index referencing the stories.
+15. **Write the epic index.** Produce `state/epics/{epic-id}/epic.yaml` as a lightweight index referencing the stories.
 
-17. **Detect UI stories.** After generating stories and before presenting for confirmation, scan each story for UI work indicators. See the UI Step Detection section below.
+16. **Detect UI stories.** After generating stories and before presenting for confirmation, scan each story for UI work indicators. See the UI Step Detection section below.
 
-18. **Run agent-ready checklist.** Validate each story against the 9-point checklist in `hive/references/agent-ready-checklist.md` (including check #9: cross-cutting concerns). Flag stories that fail checks in the confirmation output.
+17. **Run agent-ready checklist.** Validate each story against the 9-point checklist in `hive/references/agent-ready-checklist.md` (including check #9: cross-cutting concerns). Flag stories that fail checks in the confirmation output.
 
-19. **Present for confirmation.** Show the dependency graph (using Mermaid format — see Diagram Format section below), story summaries, traceability results, cross-cutting concerns applied, UI detection results, and checklist results. Ask for final confirmation before saving.
+18. **Present for confirmation.** Show the dependency graph (using Mermaid format — see Diagram Format section below), story summaries, traceability results, cross-cutting concerns applied, UI detection results, and checklist results. Ask for final confirmation before saving.
 
     Example dependency graph:
     ````
@@ -337,7 +337,7 @@ Large:   team assembly → research → brief → design discussion → team rev
 
 A collaborative review gate runs before every user-facing document presentation. This ensures all team agents align on the content and catch gaps before the user sees it.
 
-**When to run:** After steps 4, 8, and 10b — i.e., after each major document is produced and before it's presented to the user.
+**When to run:** After steps 4, 7, and 9b — i.e., after each major document is produced and before it's presented to the user.
 
 **Protocol:**
 
