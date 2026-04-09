@@ -1,0 +1,9 @@
+story: s2-optimization-charter
+phase: implement
+status: complete
+date: "2026-04-08"
+summary: |
+  Created state/meta-team/charter.md with full optimization charter content.
+  Covers mission, 4 objectives, 5 constraints, scope definition, destructiveness
+  threshold (>50% per file), budget parameters, evaluation rules, and agent pipeline.
+  All 8 design decisions (D1-D8) reflected. Charter is read-only during execution.
