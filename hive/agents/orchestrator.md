@@ -112,6 +112,25 @@ When using test swarms after development, the dev agent should NOT shut down aft
 
 This keeps the fix loop within the story's context window. The dev has memory of what it built and why — fixing is faster and more accurate than starting cold. Do NOT use the orchestrator to fix test-discovered bugs.
 
+## Pre-Shutdown Insight Protocol
+
+Before sending a `shutdown_request` to any agent, follow this protocol to capture insights:
+
+1. **Send pre-shutdown message** via `SendMessage`:
+   ```
+   Pre-shutdown: Before I shut you down, please record any non-obvious insights or
+   patterns you discovered during this session to your memory path. Reply "ready to
+   shut down" when done.
+   ```
+2. **Wait up to 2 turns** for the agent to reply "ready to shut down".
+3. **Send `shutdown_request`** once confirmed, or after 2 turns without reply (graceful degradation — insight loss accepted for unresponsive agents).
+
+**Exception — circuit-breaker kills:** Do NOT send the pre-shutdown message. Send `shutdown_request` immediately. Insight loss is an accepted consequence of circuit-breaker activation.
+
+**Respawn note:** The respawn skill does not bypass this protocol. Respawn's Step 1 already requests insight capture before agent termination, and Step 6 terminates agents via natural message withholding (not `shutdown_request`). The protocol is safe for respawned agents. See `skills/hive/skills/respawn/SKILL.md#pre-shutdown-protocol-safety`.
+
+Full spec: `hive/references/pre-shutdown-protocol.md`.
+
 ## Circuit breakers
 
 You MUST enforce time and attempt limits. Check these before starting each step, after each step, and after each fix loop iteration. See `references/error-handling.md` for the full playbook and `hive.config.yaml` for configurable limits.
