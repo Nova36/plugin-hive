@@ -7,7 +7,20 @@ description: Decompose a requirement into an epic with dependency-tracked storie
 
 Decompose a requirement into an epic with dependency-tracked stories.
 
-**Input:** `$ARGUMENTS` contains the requirement or feature description. Optionally a target codebase path.
+**Input:** `$ARGUMENTS` contains the requirement or feature description. Optionally a target codebase path. Supports optional flags (see `$ARGUMENTS` section below).
+
+## $ARGUMENTS
+
+Parse `$ARGUMENTS` as natural language. Flags are optional; all have defined defaults.
+
+**`--fast`**
+Skips H/V planning entirely at medium scope — proceeds from design discussion directly to stories. No effect at small scope (H/V is not run anyway). No effect at large scope (H/V is required regardless of this flag).
+
+**`--validate`**
+Forces approach validation (context7 + web research) regardless of scope size or context7 confidence level. Use when the tech stack is known to be in flux and explicit full validation is needed even for small-scope changes. Without this flag, web escalation is uncertainty-triggered.
+
+**`--gate-hv`**
+Retains the H/V user-facing review gate at medium scope (opt-in conservative path). Default at medium scope is to auto-proceed after collaborative review (no user gate). This flag restores the gate. No effect at large scope — the gate is always present at large scope regardless of this flag.
 
 ## Kickoff Gate
 
