@@ -1,0 +1,10 @@
+story: s6-external-research
+phase: implement
+status: complete
+date: "2026-04-08"
+summary: |
+  Created hive/references/meta-team-external-research.md — external research loop reference.
+  Defines 7 scan sources with per-source time budgets (~60 min total), 3-pass researcher
+  strategy, applicability scoring (>=0.5 threshold), network resilience (30s timeout,
+  skip-on-fail), analysis-cache integration (7-day TTL), and queue integration with
+  source attribution and priority hierarchy.
