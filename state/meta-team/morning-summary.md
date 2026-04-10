@@ -1,34 +1,34 @@
 # Hive Meta-Team — Nightly Cycle Report
-**Cycle:** meta-2026-04-09 | **Date:** 2026-04-09 | **Verdict:** PASSED
+**Cycle:** meta-2026-04-10 | **Date:** 2026-04-10 | **Verdict:** PASSED
 
 ---
 
 ## What Changed Tonight
 
-- **hive/workflows/meta-team-cycle.workflow.yaml** — bootstrapped the 8-phase nightly cycle workflow (boot → analysis → proposal → implementation → testing → evaluation → promotion → close)
-- **hive/workflows/steps/meta-team-cycle/** — created all 8 step files with full schema compliance (mandatory execution rules, protocols, context boundaries, task sequence, success metrics, failure modes)
-- **state/teams/meta-team.yaml** — created 5-agent team config (researcher → architect → developer → tester → reviewer pipeline)
-- **hive/references/meta-team-ux.md** — morning summary format, verdict definitions, status skill integration spec
-- **hive/references/meta-team-nightly-cycle.md** — full cycle integration guide (bootstrapping, tuning, monitoring, charter template)
-- **hive/references/meta-team-sandbox.md** — sandbox pipeline for risky changes (fast path vs full sandbox, validation checks)
-- **hive/references/meta-team-external-research.md** — external research loop (when to trigger, procedure, budget)
-- **hive/references/meta-team-memory-targeting.md** — memory gap identification, quality criteria, targeting procedure with examples
-- **hive/references/vertical-planning.md** — created the missing H/V planning methodology reference cited in README.md (was listed in the reference table but the file didn't exist)
-- **skills/status/SKILL.md** — added section 8: meta-team morning summary now surfaces in `/hive:status` after epic status blocks
-- **skills/hive/agents/memories/team-lead/** — 2 new starter memories: avoid over-staffing for uniform-skill stories (pitfall); validate domain compliance after each step not just at review (pattern)
-- **skills/hive/agents/memories/architect/** — 2 new starter memories: ground architecture in actual constraints (pitfall); surface risks explicitly in every design document (pattern)
-- **skills/hive/agents/memories/tpm/** — 2 new starter memories: working-state invariant for vertical slices (pattern); complete horizontal scan before vertical (pattern)
+- **`skills/hive/agents/memories/analyst/trace-every-capability-to-a-story.md`** — New pitfall memory: every capability in the original requirement must map to a story; unmapped = CAPABILITY_GAP, flag it before plan sign-off
+- **`skills/hive/agents/memories/analyst/measurable-acceptance-criteria-first.md`** — New pattern memory: acceptance criteria must be binary-testable before leaving analysis (includes the rewrite procedure)
+- **`skills/hive/agents/memories/peer-validator/stay-in-cross-story-lane.md`** — New pitfall memory: peer-validator owns cross-story consistency, not within-story correctness — clear scope boundary defined
+- **`skills/hive/agents/memories/peer-validator/convention-consistency-before-logic.md`** — New pattern memory: 5-step cross-story check order (naming → imports → conventions → dependencies → unmapped risk)
+- **`hive/references/insight-capture.md`** — Expanded from 13-line stub to 119-line full reference: insight file format with frontmatter template, TTL table, staging path convention, keep/discard criteria (5 binary tests), and a complete working example
+- **`skills/hive/agents/memories/technical-writer/structured-docs-not-prose-analysis.md`** — New pitfall memory: produce structured sections, not flowing prose; includes the diagnostic signal and fix procedure
+- **`skills/hive/agents/memories/technical-writer/match-skill-to-document-type.md`** — New pattern memory: skill routing table (design discussion / structured outline / horizontal plan / vertical plan) before writing any document
+- **`skills/hive/agents/memories/ui-designer/check-frame0-cli-availability-first.md`** — New pitfall memory: always verify `cli-anything-frame-zero` availability before starting; explicit fallback declaration required
+- **`skills/hive/agents/memories/ui-designer/one-screen-per-page-canonical-naming.md`** — New pattern memory: one screen = one Frame0 page with exact name match; verification command included
+- **`skills/hive/agents/memories/test-scout/detect-framework-from-config.md`** — New pattern memory: framework detection priority order from config files (package.json → config files → language-specific)
+- **`skills/hive/agents/memories/test-scout/never-assume-test-runner.md`** — New pitfall memory: wrong-framework assumption is the #1 test swarm failure; always verify from config, never from file extension
+- **`skills/hive/agents/memories/test-architect/strategy-before-test-generation.md`** — New pattern memory: write test strategy doc (6 sections) before generating any test files; prevents duplication and scope drift
+- **`skills/hive/agents/memories/test-architect/avoid-coverage-overlap-with-story-tests.md`** — New pitfall memory: swarm tests integration paths and E2E flows, NOT unit functions already covered by story tests
+- **`skills/hive/agents/memories/test-inspector/coverage-delta-report-format.md`** — New pattern memory: before/after delta report format with acceptance-criteria coverage table; never just "all tests pass"
+- **`skills/hive/agents/memories/test-sentinel/three-gate-pass-criteria.md`** — New pattern memory: pass requires all three gates (tests pass + coverage threshold + no regressions); verdict table included
 
 ---
 
 ## What Was Found (Not Fixed This Cycle)
 
-- **MEMORY_GAP** `skills/hive/agents/memories/analyst/` — zero starter memories _(reason: deferred_to_next_cycle — bootstrap was higher priority)_
-- **MEMORY_GAP** `skills/hive/agents/memories/tester/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/frontend-developer/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/backend-developer/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/peer-validator/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** ×8 other agents — zero starter memories _(reason: deferred — 5 agents per cycle limit)_
+- **MEMORY_GAP** `skills/hive/agents/memories/accessibility-specialist/` — 0 starter memories _(reason: deferred_to_next_cycle — over proposal cap of 5)_
+- **MEMORY_GAP** `skills/hive/agents/memories/animations-specialist/` — 0 starter memories _(reason: deferred_to_next_cycle)_
+- **MEMORY_GAP** `skills/hive/agents/memories/idiomatic-reviewer/` — 0 starter memories _(reason: deferred_to_next_cycle)_
+- **MEMORY_GAP** `skills/hive/agents/memories/performance-reviewer/` — 0 starter memories _(reason: deferred_to_next_cycle)_
 
 ---
 
@@ -42,10 +42,10 @@
 
 | Metric | Count |
 |--------|-------|
-| Findings identified | 7 |
-| Proposals generated | 4 |
-| Changes promoted | 21 |
+| Findings identified | 9 |
+| Proposals generated | 5 |
+| Changes promoted | 15 |
 | Changes reverted | 0 |
 | Flagged for human | 0 |
 
-**Next cycle priority:** Add starter memories for `analyst`, `tester`, `frontend-developer`, `backend-developer`, `peer-validator`
+**Next cycle priority:** accessibility-specialist, animations-specialist, idiomatic-reviewer, performance-reviewer (all at 0 starter memories); also add 2nd memories for test-inspector and test-sentinel
