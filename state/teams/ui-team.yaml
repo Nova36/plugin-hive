@@ -1,0 +1,37 @@
+name: ui-team
+description: Specialist UI team — drives pre-exec UI planning phases for ui:major and ui:brand-redo escalations
+lead: team-lead
+methodology: classic
+
+members:
+  - agent: ui-designer
+    role: Primary UI lead — synthesizes design direction, owns wireframes and design briefs
+    domain:
+      - path: "**"
+        read: true
+        write: true
+        delete: false
+
+  - agent: animations-specialist
+    role: Motion and interaction design — defines animation patterns and transition specs
+    domain:
+      - path: "**"
+        read: true
+        write: true
+        delete: false
+
+  - agent: accessibility-specialist
+    role: Accessibility audit — enforces WCAG compliance and inclusive design standards
+    domain:
+      - path: "**"
+        read: true
+        write: true
+        delete: false
+
+context:
+  notes: |
+    Specialist team invoked by the orchestrator for pre-exec UI planning phases.
+    Triggered on ui:major escalations (significant UI changes) and ui:brand-redo escalations.
+    Workflow deferred to L8 — no workflow field in v1.
+
+team_memory_path: state/team-memories/ui-team/
