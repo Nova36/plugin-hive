@@ -1,51 +1,85 @@
-# Hive Meta-Team — Nightly Cycle Report
-**Cycle:** meta-2026-04-09 | **Date:** 2026-04-09 | **Verdict:** PASSED
+# Hive Overnight Run — Morning Summary
+**Epic:** memory-autonomy-foundation | **Phase:** 2 | **Date:** 2026-04-14 | **Verdict:** PASSED
 
 ---
 
-## What Changed Tonight
+## What Executed
 
-- **hive/workflows/meta-team-cycle.workflow.yaml** — bootstrapped the 8-phase nightly cycle workflow (boot → analysis → proposal → implementation → testing → evaluation → promotion → close)
-- **hive/workflows/steps/meta-team-cycle/** — created all 8 step files with full schema compliance (mandatory execution rules, protocols, context boundaries, task sequence, success metrics, failure modes)
-- **state/teams/meta-team.yaml** — created 5-agent team config (researcher → architect → developer → tester → reviewer pipeline)
-- **hive/references/meta-team-ux.md** — morning summary format, verdict definitions, status skill integration spec
-- **hive/references/meta-team-nightly-cycle.md** — full cycle integration guide (bootstrapping, tuning, monitoring, charter template)
-- **hive/references/meta-team-sandbox.md** — sandbox pipeline for risky changes (fast path vs full sandbox, validation checks)
-- **hive/references/meta-team-external-research.md** — external research loop (when to trigger, procedure, budget)
-- **hive/references/meta-team-memory-targeting.md** — memory gap identification, quality criteria, targeting procedure with examples
-- **hive/references/vertical-planning.md** — created the missing H/V planning methodology reference cited in README.md (was listed in the reference table but the file didn't exist)
-- **skills/status/SKILL.md** — added section 8: meta-team morning summary now surfaces in `/hive:status` after epic status blocks
-- **skills/hive/agents/memories/team-lead/** — 2 new starter memories: avoid over-staffing for uniform-skill stories (pitfall); validate domain compliance after each step not just at review (pattern)
-- **skills/hive/agents/memories/architect/** — 2 new starter memories: ground architecture in actual constraints (pitfall); surface risks explicitly in every design document (pattern)
-- **skills/hive/agents/memories/tpm/** — 2 new starter memories: working-state invariant for vertical slices (pattern); complete horizontal scan before vertical (pattern)
+All 4 Phase 2 stories completed. No blockers, no circuit breakers tripped.
 
----
+| Story | Branch | Commit | Review Verdict | Artifacts |
+|-------|--------|--------|----------------|-----------|
+| `session-registry` | `hive-session-registry` | `cb9359f` | passed | `hive/references/session-registry-schema.md`, `skills/hive/skills/session-registry/SKILL.md` |
+| `story-execution-migration` | `hive-story-execution-migration` | `ecf3cbc` | passed | `skills/execute/SKILL.md`, `hive/references/configuration.md` |
+| `specialist-trigger-migration` | `hive-specialist-trigger-migration` | `305c300` | passed | `hive/references/specialist-trigger-rules.md`, `skills/execute/SKILL.md`, `hive/agents/orchestrator.md` |
+| `session-resilience` | `hive-session-resilience` | `f0e4813` | passed | `hive/references/session-resilience.md`, `skills/execute/SKILL.md`, `hive/references/configuration.md`, `skills/hive/skills/respawn/SKILL.md` |
 
-## What Was Found (Not Fixed This Cycle)
-
-- **MEMORY_GAP** `skills/hive/agents/memories/analyst/` — zero starter memories _(reason: deferred_to_next_cycle — bootstrap was higher priority)_
-- **MEMORY_GAP** `skills/hive/agents/memories/tester/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/frontend-developer/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/backend-developer/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** `skills/hive/agents/memories/peer-validator/` — zero starter memories _(reason: deferred_to_next_cycle)_
-- **MEMORY_GAP** ×8 other agents — zero starter memories _(reason: deferred — 5 agents per cycle limit)_
+All story branches merged into `feat/memory-autonomy-foundation`. Merge commits:
+- `8c9ecff` — Merge hive-session-registry
+- `967a1d4` — Merge hive-story-execution-migration
+- `bbe2343` — Merge hive-specialist-trigger-migration
+- `9d7ece3` — Merge hive-session-resilience
 
 ---
 
-## Flagged for Human Review
+## What Did Not Execute and Why
 
-- Nothing requires your attention.
+Nothing was blocked. All 4 Phase 2 stories ran to completion in dependency order.
+
+One design note (not a blocker): `story-execution-migration` references
+`hive/references/session-prompt-spec.md` (Phase 1 S5 deliverable). That file is asserted
+as complete per Phase 1 hard gates but does not exist in the current repo state. The
+forward-reference in step 6b is correct and will resolve when Phase 1 work is rebased
+onto the feature branch.
 
 ---
 
-## Cycle Metrics
+## What Changed (Files)
 
-| Metric | Count |
-|--------|-------|
-| Findings identified | 7 |
-| Proposals generated | 4 |
-| Changes promoted | 21 |
-| Changes reverted | 0 |
-| Flagged for human | 0 |
+### New files
+- `hive/references/session-registry-schema.md` — session record schema, status lifecycle, index format
+- `hive/references/specialist-trigger-rules.md` — 5 specialist trigger conditions, evaluation procedure, pattern matching
+- `hive/references/session-resilience.md` — SSE stuck detection, recovery procedure, comparison table vs respawn
+- `skills/hive/skills/session-registry/SKILL.md` — bootstrap command for state/sessions/index.yaml
 
-**Next cycle priority:** Add starter memories for `analyst`, `tester`, `frontend-developer`, `backend-developer`, `peer-validator`
+### Modified files
+- `skills/execute/SKILL.md` — step 5 session check (highest priority), step 6a with backward-compat note, full step 6b, resilience monitoring
+- `hive/references/configuration.md` — new `sessions.*` config block (5 fields)
+- `hive/agents/orchestrator.md` — specialist reviewer auto-trigger note
+- `skills/hive/skills/respawn/SKILL.md` — TeamCreate-only guard at top of "When to Use"
+
+---
+
+## Phase 3 Gate Status
+
+**Required for Phase 3 entry:** ≥ 3 successful session executions observed in Phase 2.
+
+**Observed successful session executions:** 0
+
+Phase 2 was entirely protocol/schema/doc work. No `/v1/sessions` API calls were made —
+this phase defined the session execution protocol, not the runtime. The infrastructure
+will be exercised when the first real epic runs with `HIVE_SESSIONS_ENABLED=1`.
+
+**Phase 3 gate: NOT MET** — 0/3 session executions observed.
+
+High-severity bugs surfaced: 0
+
+---
+
+## Explicit Next-Action Recommendation
+
+**Before Phase 3 — 3 steps required:**
+
+1. **Ensure session-prompt-spec exists.** The execute skill step 6b references
+   `hive/references/session-prompt-spec.md` (Phase 1 S5). Verify or create that file.
+
+2. **Run a smoke test with `HIVE_SESSIONS_ENABLED=1`** on a low-complexity story to
+   exercise the session registry bootstrap, session creation, specialist trigger check,
+   and SSE monitoring path. Repeat until ≥ 3 successful session executions are confirmed.
+
+3. **Delete local story branches** (`hive-session-registry`, `hive-story-execution-migration`,
+   `hive-specialist-trigger-migration`, `hive-session-resilience`) after confirming the
+   feature branch is stable.
+
+**Do NOT start Phase 3** (`kg-phase-scheduling`, `autonomous-loop-validation`) until the
+≥ 3 session execution gate is met.
