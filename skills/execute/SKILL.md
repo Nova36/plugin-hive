@@ -130,7 +130,7 @@ If all checks pass, proceed normally.
 
    **6b-3. Invoke each session.** When a story's dependencies are complete, open its
    session using the Claude Agent SDK `/v1/sessions` API. Format the initial session
-   prompt using the session prompt spec from `hive/references/session-prompt-spec.md`.
+   prompt using the session prompt spec from `hive/references/session-system-prompt-spec.md`.
    The prompt must include: story spec, workflow step sequence, episode write path, and
    specialist trigger check (see step 6b specialist check below).
    - Update the registry record: set `status: active` and `last_active_at: {NOW}`.
