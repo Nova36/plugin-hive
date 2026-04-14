@@ -79,6 +79,8 @@ execution. The session registry at `state/sessions/index.yaml` tracks all active
 | `sessions.enabled` | false | Enable session-based execution (step 6b). Set `true` or use `HIVE_SESSIONS_ENABLED=1` env var |
 | `sessions.model` | (inherits from model_tiers) | Model to use for session agents; inherits tier assignment if not set |
 | `sessions.timeout_ms` | 600000 | Max time (ms) to wait for a session to complete (10 minutes) |
+| `sessions.stuck_timeout_ms` | 90000 | SSE silence (ms) before a session is considered stuck; doubled for implement/test/optimize steps (90 seconds default) |
+| `sessions.max_retries` | 3 | Max stuck+retry cycles per story before escalating to the user |
 | `sessions.stuck_timeout_ms` | 90000 | SSE silence (ms) before a session is considered stuck (90 seconds) |
 | `sessions.max_retries` | 3 | Max session retry attempts before escalating to the user |
 
