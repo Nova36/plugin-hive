@@ -159,9 +159,12 @@ If all checks pass, proceed normally.
    **Per-story commits (session path):** Stories commit independently on their own feature
    branches (`hive-{story-id}`) as soon as review passes, same as the TeamCreate path.
 
-   **Resilience monitoring:** See `hive/references/session-resilience.md` for SSE stuck
-   detection and session retry procedure (max 3 retries per session, replacing respawn
-   for this execution path).
+   **Resilience monitoring:** While sessions are active, poll `sse_last_event_at` in the
+   session registry (`state/sessions/index.yaml`). If any active session has not updated
+   `sse_last_event_at` within `stuck_timeout_ms` (default 90s), trigger the session retry
+   procedure from `hive/references/session-resilience.md`. Max 3 retries per story before
+   escalating to the user. This replaces the respawn skill for session-based execution —
+   do NOT use the respawn protocol for step 6b stories.
 
 7. **Sequential execution.** For each story (in dependency order):
 
