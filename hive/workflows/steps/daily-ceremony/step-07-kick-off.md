@@ -87,6 +87,29 @@ If a story fails during execution:
 4. Continue executing independent stories that are not affected
 5. Include the failure in the session-end summary
 
+### 4b. Apply GitHub labels at execution start (when task_tracking.adapter === 'github')
+
+Read `hive.config.yaml`. If `task_tracking.adapter` is NOT `'github'`, skip this section:
+`[gate_mode] task_tracking.adapter is not 'github' — skipping GitHub label application`
+
+If it IS `'github'`, for each story about to be kicked off that has an `issue_number` in its
+spec, call `labelExistingIssue` to mark it in-flight:
+
+```bash
+node -e "
+const {labelExistingIssue} = require('./hive/lib/external/github-issues-adapter');
+console.log(JSON.stringify(labelExistingIssue({
+  issue_number: ISSUE_NUMBER,
+  labels: ['hive:ready', 'hive:story:STORY_ID']
+})));
+"
+```
+
+- On `{labeled: true}`: proceed with execution.
+- On `{labeled: false, reason: 'auth'}`: log a warning but do NOT block execution — GH labeling
+  is best-effort and must not halt local dev work.
+- Operation is idempotent — safe to call even if the label is already present.
+
 ### 5. Update cycle state
 After each story completes (or fails):
 - Record decisions made during execution in `cycle_state.decisions`
@@ -108,6 +131,9 @@ During execution, when agents encounter non-obvious patterns or pitfalls:
 - [ ] Failed stories handled gracefully — independent stories continue
 - [ ] Cycle state updated with decisions and statuses
 - [ ] Insights staged for session-end evaluation
+- [ ] GitHub adapter section skipped with log line when adapter !== 'github'
+- [ ] labelExistingIssue called for each GH-tracked story at execution start
+- [ ] GH auth failure logged as warning, NOT as execution blocker
 
 ## FAILURE MODES
 
