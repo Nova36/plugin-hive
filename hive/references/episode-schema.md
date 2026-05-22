@@ -57,6 +57,24 @@ Check `state/episodes/{epic-id}/{story-id}/` for marker files. Cross-reference t
 
 For in-progress stories, the most recent marker (by step order in the workflow) indicates the current phase.
 
+## Required fields when mode = multica
+
+When Hive runs in Multica execution mode, each story dispatched to the platform
+produces an additional marker file at
+`.pHive/episodes/{epic-id}/{story-id}/multica-run.yaml`. This file extends the
+base four-field schema with two **required** linkage fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `issue_id` | string (UUID) | Multica issue UUID returned by `multica issue create` |
+| `issue_identifier` | string | Human-readable issue key (e.g. `PLU-22`) |
+
+Both fields must be non-empty. They allow the closer step (s1-1) and audit
+tooling to look up the live issue without scanning the full cycle state. Run
+`node hive/scripts/audit-episode-markers.mjs` from the repo root to verify
+every marker satisfies this requirement; the script exits 1 and prints the
+offending paths if any field is missing or empty.
+
 ## Inter-phase context passing
 
 Context between workflow steps is passed **directly via agent prompts**, not stored in marker files. When the orchestrator or team lead runs step N+1, they include relevant output from step N in the task prompt. This is ephemeral — it lives in the conversation, not on disk.
